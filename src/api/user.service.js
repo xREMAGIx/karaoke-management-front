@@ -10,6 +10,7 @@ export const userService = {
   update,
   delete: _delete,
   getMe,
+  add,
 };
 
 async function login(user) {
@@ -42,23 +43,18 @@ async function logout() {
 }
 
 function getAll() {
-  const requestOptions = {
-    method: "GET",
-    headers: authHeader(),
-  };
+  const requestOptions = {};
 
-  return fetch(`/api/users`, requestOptions).then(handleResponse);
+  return axios.get(`/api/users`, requestOptions).then(handleResponse);
 }
 
-function getById(id) {
-  const requestOptions = {
-    method: "GET",
+async function getById(id) {
+  const requestConfig = {
     headers: authHeader(),
   };
-
-  return fetch(`/api/users/${id}`, requestOptions)
-    .then(handleResponse)
-    .catch(handleResponse);
+  return await axios
+    .get(`/api/users/${id}`, requestConfig)
+    .then(handleResponse);
 }
 
 async function register(user) {
@@ -72,29 +68,73 @@ async function register(user) {
   await axios.post("/api/auth/register", body, config).then(handleResponse);
 }
 
-function update(user) {
-  const requestOptions = {
-    method: "PUT",
-    headers: { ...authHeader(), "Content-Type": "application/json" },
-    body: JSON.stringify(user),
+async function add(user) {
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+    },
   };
 
-  return fetch(`/api/users/${user.id}`, requestOptions).then(handleResponse);
+  const body = JSON.stringify(user);
+  await axios.post("/api/users/", body, config).then(handleResponse);
+}
+
+async function update(id, user, image) {
+  const imageData = new FormData();
+  imageData.append("image", image);
+
+  const requestConfig = {
+    headers: {
+      //authHeader(),
+      "Content-Type": "application/json",
+    },
+  };
+
+  const body = JSON.stringify(user);
+  console.log(body);
+
+  if (imageData.get("image")) {
+    try {
+      await axios.put(`/api/users/${id}`, body, requestConfig);
+    } catch (error) {
+      console.log(error);
+    }
+
+    const configFormData = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    };
+    try {
+      return await axios
+        .put("/api/users/" + id + "/image", imageData, configFormData)
+        .then(handleResponse);
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    return await axios
+      .put(`/api/users/${id}`, body, requestConfig)
+      .then(handleResponse);
+  }
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
-function _delete(id) {
-  const requestOptions = {
-    method: "DELETE",
-    headers: authHeader(),
+async function _delete(id) {
+  const requestConfig = {
+    // headers: authHeader()
   };
 
-  return fetch(`/api/users/${id}`, requestOptions).then(handleResponse);
+  return await axios
+    .delete(`/api/users/${id}`, requestConfig)
+    .then(handleResponse);
 }
 
 function handleResponse(response) {
   let data;
   if (response.data.data) data = response.data.data;
+
+  console.log(data);
 
   if (response.status !== 200) {
     const error = (response && response.message) || response.statusText;

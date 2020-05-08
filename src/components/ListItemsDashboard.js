@@ -4,73 +4,34 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import DashboardIcon from "@material-ui/icons/Dashboard";
-import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 import PeopleIcon from "@material-ui/icons/People";
-import BarChartIcon from "@material-ui/icons/BarChart";
-import CategoryIcon from "@material-ui/icons/Category";
-import BrandingWatermarkIcon from "@material-ui/icons/BrandingWatermark";
 import PanoramaIcon from "@material-ui/icons/Panorama";
-import AssignmentIcon from "@material-ui/icons/Assignment";
-import FastfoodIcon from "@material-ui/icons/Fastfood";
+import ScheduleIcon from "@material-ui/icons/Schedule";
 import { Link } from "react-router-dom";
 
 // component
 //import DashBoard from "./Dashboard";
 export const mainListItems = (
   <div>
-    <ListItem button component={Link} to="/dashboard">
+    <ListItem button component={Link} to="/">
       <ListItemIcon>
         <DashboardIcon />
       </ListItemIcon>
       <ListItemText primary="Dashboard" />
     </ListItem>
 
-    <ListItem button component={Link} to="/products">
-      <ListItemIcon>
-        <FastfoodIcon />
-      </ListItemIcon>
-      <ListItemText primary="Products" />
-    </ListItem>
-
-    <ListItem button component={Link} to="/categories">
-      <ListItemIcon>
-        <CategoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Categories" />
-    </ListItem>
-
-    <ListItem button component={Link} to="/brands">
-      <ListItemIcon>
-        <BrandingWatermarkIcon />
-      </ListItemIcon>
-      <ListItemText primary="Brands" />
-    </ListItem>
-
-    <ListItem button component={Link} to="/orders">
-      <ListItemIcon>
-        <ShoppingCartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Orders" />
-    </ListItem>
-
-    <ListItem button component={Link} to="/posts">
-      <ListItemIcon>
-        <AssignmentIcon />
-      </ListItemIcon>
-      <ListItemText primary="Posts" />
-    </ListItem>
-
-    <ListItem button>
+    <ListItem button component={Link} to="/users">
       <ListItemIcon>
         <PeopleIcon />
       </ListItemIcon>
-      <ListItemText primary="Customers" />
+      <ListItemText primary="Users" />
     </ListItem>
-    <ListItem button>
+
+    <ListItem button component={Link} to="/schedules">
       <ListItemIcon>
-        <BarChartIcon />
+        <ScheduleIcon />
       </ListItemIcon>
-      <ListItemText primary="Reports" />
+      <ListItemText primary="Schedules" />
     </ListItem>
   </div>
 );

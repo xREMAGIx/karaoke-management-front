@@ -19,6 +19,9 @@ import AccountCircle from "@material-ui/icons/AccountCircle";
 import { mainListItems, secondaryListItems } from "./ListItemsDashboard";
 import { useDispatch } from "react-redux";
 import { userActions } from "../actions";
+import Switch from "@material-ui/core/Switch";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -103,7 +106,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function CustomDrawer() {
+export default function CustomDrawer(props) {
+  console.log(props);
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = React.useState(null);
@@ -159,6 +163,16 @@ export default function CustomDrawer() {
           >
             Admin page
           </Typography>
+          <FormControlLabel
+            style={{ display: "flex", alignItems: "right" }}
+            control={
+              <Switch
+                onChange={props.onToggleTheme}
+                inputProps={{ "aria-label": "secondary checkbox" }}
+              />
+            }
+            label="Light"
+          />
           <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">
               <NotificationsIcon />

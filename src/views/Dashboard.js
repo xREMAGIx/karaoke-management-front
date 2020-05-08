@@ -171,7 +171,7 @@ function preventDefault(event) {
   event.preventDefault();
 }
 
-export default function Dashboard() {
+export default function Dashboard(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
@@ -189,6 +189,8 @@ export default function Dashboard() {
     setOpen(false);
   };
 
+  console.log(props);
+
   return (
     <React.Fragment>
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
@@ -197,7 +199,7 @@ export default function Dashboard() {
         </Alert>
       </Snackbar>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.container}>

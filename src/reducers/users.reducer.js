@@ -4,6 +4,8 @@ const initialState = {
   loading: true,
   isAuthenticated: false,
   user: null,
+  items: [],
+  item: [],
 };
 
 export function users(state = initialState, action) {
@@ -50,6 +52,7 @@ export function users(state = initialState, action) {
       };
     case userConstants.GETME_SUCCESS:
       return {
+        ...state,
         loading: false,
         isAuthenticated: true,
         user: action.user,
@@ -63,6 +66,7 @@ export function users(state = initialState, action) {
       };
     case userConstants.GETALL_SUCCESS:
       return {
+        ...state,
         items: action.users,
       };
     case userConstants.GETALL_FAILURE:
@@ -97,6 +101,32 @@ export function users(state = initialState, action) {
           return user;
         }),
       };
+
+    case userConstants.UPDATE_REQUEST:
+      return {
+        ...state,
+      };
+    case userConstants.UPDATE_SUCCESS:
+      return {
+        ...state,
+        item: [],
+      };
+    case userConstants.UPDATE_FAILURE:
+      return { error: action.error };
+
+    case userConstants.GETBYID_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+    case userConstants.GETBYID_SUCCESS:
+      return {
+        ...state,
+        item: action.user,
+      };
+    case userConstants.GETBYID_ERROR:
+      return { error: action.error };
+
     default:
       return state;
   }
