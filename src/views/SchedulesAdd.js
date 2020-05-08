@@ -73,9 +73,6 @@ export default function ScheduleAddModal() {
   const [newSchedules, setNewSchedules] = React.useState([]);
 
   const [userOption, setUserOption] = React.useState([]);
-  //   const onChange = (e) => {
-  //     setFormData({ ...formData, [e.target.name]: e.target.value });
-  //   };
 
   useEffect(() => {
     dispatch(userActions.getAll());

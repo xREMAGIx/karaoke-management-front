@@ -248,7 +248,7 @@ export default function UserEditModal(props) {
                   id="outlined-name"
                   variant="outlined"
                   name="name"
-                  value={name}
+                  value={name || ""}
                   onChange={(e) => onChange(e)}
                   onKeyPress={(e) => keyPressed(e)}
                 />
@@ -259,7 +259,7 @@ export default function UserEditModal(props) {
                   id="outlined-email"
                   variant="outlined"
                   name="email"
-                  value={email}
+                  value={email || ""}
                   onChange={(e) => onChange(e)}
                   onKeyPress={(e) => keyPressed(e)}
                 />
@@ -270,7 +270,8 @@ export default function UserEditModal(props) {
                   id="outlined-salary"
                   variant="outlined"
                   name="salary"
-                  value={salary}
+                  type="number"
+                  value={salary || 0}
                   onChange={(e) => onChange(e)}
                   onKeyPress={(e) => keyPressed(e)}
                 />
@@ -297,8 +298,7 @@ export default function UserEditModal(props) {
                 </Grid>
 
                 <Grid container>
-                  {newSchedules &&
-                    newSchedules.length > 0 &&
+                  {newSchedules.length > 0 &&
                     newSchedules.map((schedule) => (
                       <Grid
                         style={{ marginTop: "10px" }}

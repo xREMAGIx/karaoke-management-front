@@ -7,6 +7,7 @@ import DashboardIcon from "@material-ui/icons/Dashboard";
 import PeopleIcon from "@material-ui/icons/People";
 import PanoramaIcon from "@material-ui/icons/Panorama";
 import ScheduleIcon from "@material-ui/icons/Schedule";
+import MeetingRoomIcon from "@material-ui/icons/MeetingRoom";
 import { Link } from "react-router-dom";
 
 // component
@@ -32,6 +33,12 @@ export const mainListItems = (
         <ScheduleIcon />
       </ListItemIcon>
       <ListItemText primary="Schedules" />
+    </ListItem>
+    <ListItem button component={Link} to="/rooms">
+      <ListItemIcon>
+        <MeetingRoomIcon />
+      </ListItemIcon>
+      <ListItemText primary="Rooms" />
     </ListItem>
   </div>
 );

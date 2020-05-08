@@ -7,6 +7,7 @@ import Login from "./views/Login";
 import Register from "./views/Register";
 import Users from "./views/Users";
 import Schedules from "./views/Schedules";
+import Rooms from "./views/Rooms";
 import { history } from "./store";
 import AdminRoute from "./components/AdminRoute";
 import { useSelector, useDispatch } from "react-redux";
@@ -33,17 +34,6 @@ const App = () => {
   return (
     <ThemeProvider theme={checked ? theme : darkTheme}>
       <React.Fragment>
-        {/* <FormControlLabel
-          style={{ display: "flex", alignItems: "right" }}
-          control={
-            <MuiSwitch
-              checked={checked}
-              onChange={toggleChecked}
-              inputProps={{ "aria-label": "secondary checkbox" }}
-            />
-          }
-          label="Light"
-        /> */}
         <Router history={history}>
           <Switch>
             <Route exact path="/login" component={Login}></Route>
@@ -68,6 +58,13 @@ const App = () => {
               user={user}
               toggleTheme={toggleChecked}
               component={Schedules}
+            ></AdminRoute>
+            <AdminRoute
+              exact
+              path="/rooms"
+              user={user}
+              toggleTheme={toggleChecked}
+              component={Rooms}
             ></AdminRoute>
             <AdminRoute render={() => <h1>404: page not found</h1>} />
           </Switch>
