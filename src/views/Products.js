@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
-import { userActions } from "../actions";
-
+import { productActions } from "../actions";
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import Table from "@material-ui/core/Table";
@@ -22,12 +22,12 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
 import InputBase from "@material-ui/core/InputBase";
+import CreateIcon from "@material-ui/icons/Create";
 import DeleteIcon from "@material-ui/icons/Delete";
 import SearchIcon from "@material-ui/icons/Search";
-import Skeleton from "@material-ui/lab/Skeleton";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
-import { Link } from "react-router-dom";
-import CreateIcon from "@material-ui/icons/Create";
+import Skeleton from "@material-ui/lab/Skeleton";
+import { history } from "../store";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -68,28 +68,25 @@ function stableSort(array, comparator) {
 
 const headCells = [
   {
-    id: "name",
+    id: "sku",
     numeric: false,
     disablePadding: true,
-    label: "User name",
+    label: "SKU",
   },
   {
-    id: "email",
+    id: "productName",
     numeric: false,
     disablePadding: true,
-    label: "Email",
+    label: "Product Name",
   },
-  {
-    id: "status",
-    numeric: false,
-    disablePadding: true,
-    label: "Status",
-  },
+  { id: "img", numeric: false, disablePadding: false, label: "Image" },
+  { id: "price", numeric: true, disablePadding: false, label: "Price" },
+  { id: "stock", numeric: true, disablePadding: false, label: "Stock" },
   {
     id: "createAt",
-    numeric: false,
-    disablePadding: true,
-    label: "Create At",
+    numeric: true,
+    disablePadding: false,
+    label: "Create Date",
   },
 ];
 
@@ -122,6 +119,10 @@ function EnhancedTableHead(props) {
           <TableCell
             key={headCell.id}
             align={headCell.numeric ? "right" : "left"}
+            style={{
+              whiteSpace: "normal",
+              wordWrap: "break-word",
+            }}
             padding={headCell.disablePadding ? "none" : "default"}
             sortDirection={orderBy === headCell.id ? order : false}
           >
@@ -220,7 +221,7 @@ const EnhancedTableToolbar = (props) => {
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
-    dispatch(userActions.delete(id));
+    dispatch(productActions.delete(id));
   };
 
   return (
@@ -240,7 +241,7 @@ const EnhancedTableToolbar = (props) => {
           </Typography>
         ) : (
           <Typography className={classes.title} variant="h6" id="tableTitle">
-            Users
+            Products
           </Typography>
         )}
 
@@ -251,7 +252,7 @@ const EnhancedTableToolbar = (props) => {
                 <Tooltip title="Modify">
                   <IconButton
                     component={Link}
-                    to={"/users-edit/" + selectedIndex[0]}
+                    to={"/products-edit/" + selectedIndex[0]}
                     aria-label="modify"
                   >
                     <CreateIcon />
@@ -289,12 +290,13 @@ const EnhancedTableToolbar = (props) => {
                     input: classes.inputInput,
                   }}
                   inputProps={{ "aria-label": "search" }}
+                  onChange={props.searchAction}
                 />
               </div>
             </Grid>
             <Grid item>
               <Tooltip title="Add new">
-                <IconButton component={Link} to="/users-add">
+                <IconButton component={Link} to="/products-add">
                   <AddCircleIcon />
                 </IconButton>
               </Tooltip>
@@ -347,7 +349,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Users(props) {
+export default function Products() {
   const classes = useStyles();
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
@@ -355,17 +357,34 @@ export default function Users(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const users = useSelector((state) => state.users);
+  const [searchResults, setSearchResults] = React.useState([]);
+  const [searchTerm, setSearchTerm] = React.useState("");
+
   //const user = useSelector(state => state.authentication.user);
+
+  const products = useSelector((state) => state.products);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(userActions.getAll());
+    console.log(history.location.state);
+  }, []);
+
+  useEffect(() => {
+    dispatch(productActions.getAll());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   console.log(JSON.parse(users.items[0].content));
-  // }, [users.items]);
+  useEffect(() => {
+    if (products.items) {
+      const results = products.items.filter((product) =>
+        product.productName.toLowerCase().includes(searchTerm)
+      );
+      setSearchResults(results);
+    }
+  }, [searchTerm, products.items]);
+
+  const handleChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -375,7 +394,7 @@ export default function Users(props) {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = users.items.map((n) => n._id);
+      const newSelecteds = products.items.map((n) => n._id);
       setSelected(newSelecteds);
       return;
     }
@@ -421,16 +440,23 @@ export default function Users(props) {
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer onToggleTheme={props.toggleTheme} />
+        <CustomDrawer />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
+
           <Container maxWidth="lg" className={classes.mainContainer}>
-            {!users.items ? (
-              <Skeleton variant="rect" width={"100%"} height={50} />
+            {!products.items ? (
+              <Skeleton
+                variant="rect"
+                width={"100%"}
+                height={50}
+                style={{ marginBottom: "10px" }}
+              />
             ) : (
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                searchAction={handleChange}
               />
             )}
             <TableContainer className={classes.tableContainer}>
@@ -440,13 +466,8 @@ export default function Users(props) {
                 aria-labelledby="tableTitle"
                 aria-label="enhanced table"
               >
-                {!users.items ? (
-                  <Skeleton
-                    variant="rect"
-                    width={"100%"}
-                    height={40}
-                    style={{ marginTop: "10px" }}
-                  />
+                {!products.items ? (
+                  <Skeleton variant="rect" width={"100%"} height={40} />
                 ) : (
                   <EnhancedTableHead
                     classes={classes}
@@ -455,63 +476,112 @@ export default function Users(props) {
                     orderBy={orderBy}
                     onSelectAllClick={handleSelectAllClick}
                     onRequestSort={handleRequestSort}
-                    rowCount={users.items.length}
+                    rowCount={products.items.length}
                   />
                 )}
-                {!users.items ? (
-                  <Skeleton
-                    variant="rect"
-                    width={"100%"}
-                    height={100}
-                    style={{ marginTop: "10px" }}
-                  />
+                {!products.items ? (
+                  <Skeleton variant="rect" width={"100%"} height={100} />
                 ) : (
                   <TableBody>
-                    {stableSort(users.items, getComparator(order, orderBy))
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((row, index) => {
-                        const isItemSelected = isSelected(row._id);
-                        const labelId = `enhanced-table-checkbox-${index}`;
+                    {Array.isArray(products.items) &&
+                      stableSort(searchResults, getComparator(order, orderBy))
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((row, index) => {
+                          const isItemSelected = isSelected(row._id);
+                          const labelId = `enhanced-table-checkbox-${index}`;
 
-                        return (
-                          <TableRow
-                            hover
-                            onClick={(event) => handleClick(event, row._id)}
-                            role="checkbox"
-                            aria-checked={isItemSelected}
-                            tabIndex={-1}
-                            key={row._id}
-                            selected={isItemSelected}
-                          >
-                            <TableCell>
-                              <Checkbox
-                                checked={isItemSelected}
-                                inputProps={{ "aria-labelledby": labelId }}
-                              />
-                            </TableCell>
-                            <TableCell
-                              component="th"
-                              id={labelId}
-                              scope="row"
-                              padding="none"
+                          return (
+                            <TableRow
+                              hover
+                              onClick={(event) => handleClick(event, row._id)}
+                              role="checkbox"
+                              aria-checked={isItemSelected}
+                              tabIndex={-1}
+                              key={row.sku}
+                              selected={isItemSelected}
                             >
-                              {row.name}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.email}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.status}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {dateFormat(row.createdAt)}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                              <TableCell>
+                                <Checkbox
+                                  checked={isItemSelected}
+                                  inputProps={{ "aria-labelledby": labelId }}
+                                />
+                              </TableCell>
+                              <TableCell
+                                component="th"
+                                id={labelId}
+                                scope="row"
+                                padding="none"
+                              >
+                                <Grid item xs zeroMinWidth>
+                                  <Typography variant="body2" noWrap>
+                                    {row.sku}
+                                  </Typography>
+                                </Grid>
+                              </TableCell>
+                              <TableCell scope="row" padding="none">
+                                <Grid item xs zeroMinWidth>
+                                  <Typography variant="body2" noWrap>
+                                    {row.productName}
+                                  </Typography>
+                                </Grid>
+                              </TableCell>
+                              {/* <TableCell scope="row" padding="none">
+                                {categories.items.length !== 0
+                                  ? categories.items.filter((category) => {
+                                      return category._id === row.category;
+                                    })[0].name
+                                  : null}
+                              </TableCell>
+                              <TableCell scope="row" padding="none">
+                                {brands.items.length !== 0
+                                  ? brands.items.filter((brand) => {
+                                      return brand._id === row.brand;
+                                    })[0].name
+                                  : null}
+                              </TableCell> */}
+                              <TableCell padding="none">
+                                {row.images.length > 0 ? (
+                                  <img
+                                    className={classes.img}
+                                    src={
+                                      "http://localhost:5000/uploads/" +
+                                      row.images[0].path
+                                    }
+                                    alt="broken"
+                                  />
+                                ) : null}
+                              </TableCell>
+                              <TableCell align="right">
+                                {row.price.toLocaleString()}
+                              </TableCell>
+                              <TableCell align="right">{row.stock}</TableCell>
+                              {/* <TableCell align="right">
+                                {row.discount}%
+                              </TableCell>
+                              <TableCell
+                                style={{
+                                  maxWidth: "5vw",
+                                  whiteSpace: "normal",
+                                  wordWrap: "break-word",
+                                }}
+                                scope="row"
+                                // padding="none"
+                              >
+                                <Grid item xs zeroMinWidth>
+                                  <Typography variant="body2" noWrap>
+                                    {row.description}
+                                  </Typography>
+                                </Grid>
+                              </TableCell> */}
+                              <TableCell align="right">
+                                {dateFormat(row.createAt)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                     {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />
@@ -521,7 +591,7 @@ export default function Users(props) {
                 )}
               </Table>
             </TableContainer>
-            {!users.items ? (
+            {!products.items ? (
               <Skeleton
                 variant="rect"
                 width={400}
@@ -532,7 +602,7 @@ export default function Users(props) {
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"
-                count={users.items.length}
+                count={products.items.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onChangePage={handleChangePage}

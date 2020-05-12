@@ -1,6 +1,6 @@
 import { scheduleConstants } from "../constants";
 import { scheduleService } from "../api";
-import { history } from "../store";
+//import { history } from "../store";
 
 export const scheduleActions = {
   add,

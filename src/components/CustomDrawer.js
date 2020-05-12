@@ -107,7 +107,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function CustomDrawer(props) {
-  console.log(props);
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = React.useState(null);

@@ -5,7 +5,7 @@ const initialState = {
   isAuthenticated: false,
   user: null,
   items: [],
-  item: [],
+  item: null,
 };
 
 export function users(state = initialState, action) {
@@ -109,7 +109,6 @@ export function users(state = initialState, action) {
     case userConstants.UPDATE_SUCCESS:
       return {
         ...state,
-        item: [],
       };
     case userConstants.UPDATE_FAILURE:
       return { error: action.error };

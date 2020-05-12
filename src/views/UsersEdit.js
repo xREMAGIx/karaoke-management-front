@@ -1,44 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import Modal from "@material-ui/core/Modal";
-import Backdrop from "@material-ui/core/Backdrop";
-import Fade from "@material-ui/core/Fade";
-import Tooltip from "@material-ui/core/Tooltip";
-import IconButton from "@material-ui/core/IconButton";
-import CreateIcon from "@material-ui/icons/Create";
-import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
+import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
+import CustomDrawer from "../components/CustomDrawer";
+import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import { Link } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
+
 import { userActions } from "../actions";
+import Skeleton from "@material-ui/lab/Skeleton";
 
 const useStyles = makeStyles((theme) => ({
-  modal: {
+  root: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
   },
-  paper: {
-    backgroundColor: theme.palette.background.paper,
-    border: "2px solid #000",
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
+  appBarSpacer: theme.mixins.toolbar,
+  content: {
+    flexGrow: 1,
+    height: "100vh",
+    overflow: "auto",
+  },
+  container: {
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(4),
   },
   uploadRoot: {
-    "& > *": {
-      margin: theme.spacing(1),
-    },
+    margin: theme.spacing(1),
   },
   input: {
     display: "none",
-  },
-  img: {
-    height: "100px",
-    width: "100px",
   },
   gridList: {
     height: "60vh",
@@ -71,9 +65,10 @@ const workingTimeOption = [
   { title: "Evening", value: "evening" },
 ];
 
-export default function UserEditModal(props) {
+export default function UserEdit(props) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+
+  const [loading, setLoading] = React.useState(true);
 
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
@@ -92,19 +87,13 @@ export default function UserEditModal(props) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = () => {
-    dispatch(userActions.getById(props.id));
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   const onSubmit = () => {
     //console.log();
     dispatch(
-      userActions.update(props.id, { ...formData, schedules: newSchedules })
+      userActions.update(props.match.params.id, {
+        ...formData,
+        schedules: newSchedules,
+      })
     );
   };
 
@@ -205,130 +194,174 @@ export default function UserEditModal(props) {
   };
 
   useEffect(() => {
+    //console.log(props.match.params.id);
+    dispatch(userActions.getById(props.match.params.id));
+  }, [dispatch, props.match.params.id]);
+
+  useEffect(() => {
     setFormData({ ...users.item });
     //setOnImageChange({ ...formData.image });
 
-    if (users.item) setNewSchedules([...users.item.schedules]);
+    if (users.item !== undefined && users.item !== null) {
+      setNewSchedules([...users.item.schedules]);
+      setLoading((loading) => !loading);
+    }
   }, [users.item]);
 
-  useEffect(() => {
-    console.log(newSchedules);
-  }, [newSchedules]);
-
   return (
-    <div>
-      <Tooltip title="Modify">
-        <IconButton aria-label="modify" onClick={handleOpen}>
-          <CreateIcon />
-        </IconButton>
-      </Tooltip>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        className={classes.modal}
-        open={open}
-        onClose={handleClose}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={open}>
-          <div className={classes.paper}>
-            {formData && (
-              <Container maxWidth="md" className={classes.container}>
-                <Typography variant="h4" gutterBottom>
-                  User edit
-                </Typography>
-                <TextField
-                  fullWidth
-                  style={{ marginTop: "10px" }}
-                  label="User name"
-                  id="outlined-name"
-                  variant="outlined"
-                  name="name"
-                  value={name || ""}
-                  onChange={(e) => onChange(e)}
-                  onKeyPress={(e) => keyPressed(e)}
-                />
-                <TextField
-                  fullWidth
-                  style={{ marginTop: "10px" }}
-                  label="User email"
-                  id="outlined-email"
-                  variant="outlined"
-                  name="email"
-                  value={email || ""}
-                  onChange={(e) => onChange(e)}
-                  onKeyPress={(e) => keyPressed(e)}
-                />
-                <TextField
-                  fullWidth
-                  style={{ marginTop: "10px" }}
-                  label="Salary"
-                  id="outlined-salary"
-                  variant="outlined"
-                  name="salary"
-                  type="number"
-                  value={salary || 0}
-                  onChange={(e) => onChange(e)}
-                  onKeyPress={(e) => keyPressed(e)}
-                />
+    <React.Fragment>
+      <div className={classes.root}>
+        <CustomDrawer />
+        <main className={classes.content}>
+          <div className={classes.appBarSpacer} />
+          <Container maxWidth="lg" className={classes.container}>
+            {loading ? (
+              <React.Fragment>
                 <Grid
-                  style={{ marginTop: "10px" }}
                   container
-                  justify="center"
+                  direction="row"
                   spacing={5}
+                  style={{ marginTop: "45px" }}
                 >
-                  <Grid item>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={addNewSchedulesClick}
-                    >
-                      Add new Schedule
-                    </Button>
+                  <Grid item xs={12}>
+                    <Skeleton variant="rect" height={56} />
                   </Grid>
-                  <Grid item>
-                    <Button variant="contained" onClick={handleClose}>
-                      Cancel
-                    </Button>
+                  <Grid item xs={12}>
+                    <Skeleton variant="rect" height={56} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Skeleton variant="rect" height={56} />
                   </Grid>
                 </Grid>
 
-                <Grid container>
-                  {newSchedules.length > 0 &&
-                    newSchedules.map((schedule) => (
-                      <Grid
-                        style={{ marginTop: "10px" }}
-                        item
-                        xs={12}
-                        container
-                      >
-                        <Grid item xs={6}>
-                          <Autocomplete
-                            options={weekdaysOption}
-                            onChange={(e, value) =>
-                              handleWeekdaysSelected(
-                                value,
-                                newSchedules.indexOf(schedule)
-                              )
-                            }
-                            value={
-                              weekdaysOption[weekDayToIndex(schedule.weekDay)]
-                            }
-                            getOptionLabel={(option) => option.title}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Weekdays"
-                                variant="outlined"
+                <Grid
+                  xs={12}
+                  style={{ marginTop: "30px" }}
+                  container
+                  //spacing={5}
+                >
+                  <Grid item xs={12} container justify="center">
+                    <Skeleton variant="rect" width={200} height={45} />
+                  </Grid>
+                  <Grid item xs={12} style={{ marginTop: "30px" }}>
+                    <Skeleton variant="rect" height={56} />
+                  </Grid>
+                </Grid>
+
+                <Grid
+                  container
+                  spacing={5}
+                  style={{ marginTop: "30px" }}
+                  justify="center"
+                >
+                  <Grid item>
+                    <Skeleton variant="rect" width={120} height={45} />
+                  </Grid>
+                  <Grid item>
+                    <Skeleton variant="rect" width={120} height={45} />
+                  </Grid>
+                </Grid>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                {formData && (
+                  <Container maxWidth="lg" className={classes.container}>
+                    <Typography variant="h4" gutterBottom>
+                      User edit
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      style={{ marginTop: "10px" }}
+                      label="User name"
+                      id="outlined-name"
+                      variant="outlined"
+                      name="name"
+                      value={name || ""}
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e) => keyPressed(e)}
+                    />
+                    <TextField
+                      fullWidth
+                      style={{ marginTop: "10px" }}
+                      label="User email"
+                      id="outlined-email"
+                      variant="outlined"
+                      name="email"
+                      value={email || ""}
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e) => keyPressed(e)}
+                    />
+                    <TextField
+                      fullWidth
+                      style={{ marginTop: "10px" }}
+                      label="Salary"
+                      id="outlined-salary"
+                      variant="outlined"
+                      name="salary"
+                      type="number"
+                      value={salary || 0}
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e) => keyPressed(e)}
+                    />
+                    <Grid
+                      style={{ marginTop: "10px" }}
+                      container
+                      justify="center"
+                      spacing={5}
+                    >
+                      <Grid item>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={addNewSchedulesClick}
+                        >
+                          Add new Schedule
+                        </Button>
+                      </Grid>
+                      {/* <Grid item>
+                        <Button variant="contained" onClick={handleClose}>
+                          Cancel
+                        </Button>
+                      </Grid> */}
+                    </Grid>
+
+                    <Grid container>
+                      {newSchedules.length > 0 &&
+                        newSchedules.map((schedule) => (
+                          <Grid
+                            key={schedule._id}
+                            style={{ marginTop: "10px" }}
+                            item
+                            xs={12}
+                            container
+                            alignItems="center"
+                            spacing={3}
+                          >
+                            <Grid item xs={6}>
+                              <Autocomplete
+                                options={weekdaysOption}
+                                onChange={(e, value) =>
+                                  handleWeekdaysSelected(
+                                    value,
+                                    newSchedules.indexOf(schedule)
+                                  )
+                                }
+                                value={
+                                  weekdaysOption[
+                                    weekDayToIndex(schedule.weekDay)
+                                  ]
+                                }
+                                getOptionLabel={(option) => option.title}
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    label="Weekdays"
+                                    variant="outlined"
+                                  />
+                                )}
                               />
-                            )}
-                          />
-                        </Grid>
-                        {/* 
+                            </Grid>
+                            {/* 
                         <Grid item xs={3}>
                           <Autocomplete
                             id="combo-box-start"
@@ -371,71 +404,77 @@ export default function UserEditModal(props) {
                           />
                         </Grid> */}
 
-                        <Grid item xs={5}>
-                          <Autocomplete
-                            options={workingTimeOption}
-                            onChange={(e, value) =>
-                              handleWorkingTimeSelected(
-                                value,
-                                newSchedules.indexOf(schedule)
-                              )
-                            }
-                            value={
-                              workingTimeOption[
-                                workingTimeToIndex(schedule.workingTime)
-                              ]
-                            }
-                            getOptionLabel={(option) => option.title}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Working Time"
-                                variant="outlined"
+                            <Grid item xs={5}>
+                              <Autocomplete
+                                options={workingTimeOption}
+                                onChange={(e, value) =>
+                                  handleWorkingTimeSelected(
+                                    value,
+                                    newSchedules.indexOf(schedule)
+                                  )
+                                }
+                                value={
+                                  workingTimeOption[
+                                    workingTimeToIndex(schedule.workingTime)
+                                  ]
+                                }
+                                getOptionLabel={(option) => option.title}
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    label="Working Time"
+                                    variant="outlined"
+                                  />
+                                )}
                               />
-                            )}
-                          />
-
-                          <Grid item xs={1}>
-                            <Button
-                              variant="text"
-                              onClick={(e) =>
-                                onDelete(newSchedules.indexOf(schedule))
-                              }
-                            >
-                              DEL
-                            </Button>
+                            </Grid>
+                            <Grid item xs={1}>
+                              <Button
+                                style={{ color: "#b51a02" }}
+                                variant="text"
+                                onClick={(e) =>
+                                  onDelete(newSchedules.indexOf(schedule))
+                                }
+                              >
+                                DEL
+                              </Button>
+                            </Grid>
                           </Grid>
-                        </Grid>
-                      </Grid>
-                    ))}
-                </Grid>
+                        ))}
+                    </Grid>
 
-                <Grid
-                  style={{ marginTop: "10px" }}
-                  container
-                  justify="center"
-                  spacing={5}
-                >
-                  <Grid item>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={(e) => onSubmit(e)}
+                    <Grid
+                      style={{ marginTop: "10px" }}
+                      container
+                      justify="center"
+                      spacing={5}
                     >
-                      Update
-                    </Button>
-                  </Grid>
-                  <Grid item>
-                    <Button variant="contained" onClick={handleClose}>
-                      Cancel
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Container>
+                      <Grid item>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={(e) => onSubmit(e)}
+                        >
+                          Update
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        <Button
+                          component={Link}
+                          to="/users"
+                          variant="contained"
+                        >
+                          Cancel
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Container>
+                )}
+              </React.Fragment>
             )}
-          </div>
-        </Fade>
-      </Modal>
-    </div>
+          </Container>
+        </main>
+      </div>
+    </React.Fragment>
   );
 }

@@ -1,6 +1,6 @@
 import { roomConstants } from "../constants";
 import { roomService } from "../api";
-import { history } from "../store";
+//import { history } from "../store";
 
 export const roomActions = {
   add,

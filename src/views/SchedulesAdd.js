@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
@@ -98,9 +98,9 @@ export default function ScheduleAddModal() {
     dispatch(scheduleActions.add(newSchedules));
   };
 
-  const keyPressed = (e) => {
-    if (e.key === "Enter") onSubmit(e);
-  };
+  // const keyPressed = (e) => {
+  //   if (e.key === "Enter") onSubmit(e);
+  // };
 
   const addNewSchedulesClick = () => {
     setNewSchedules((newSchedules) => [

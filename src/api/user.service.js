@@ -1,4 +1,4 @@
-import { authHeader } from "../store";
+//import { authHeader } from "../store";
 import axios from "axios";
 
 export const userService = {
@@ -49,8 +49,9 @@ function getAll() {
 }
 
 async function getById(id) {
+  console.log(id);
   const requestConfig = {
-    headers: authHeader(),
+    //headers: authHeader(),
   };
   return await axios
     .get(`/api/users/${id}`, requestConfig)
@@ -91,7 +92,6 @@ async function update(id, user, image) {
   };
 
   const body = JSON.stringify(user);
-  console.log(body);
 
   if (imageData.get("image")) {
     try {
@@ -133,8 +133,6 @@ async function _delete(id) {
 function handleResponse(response) {
   let data;
   if (response.data.data) data = response.data.data;
-
-  console.log(data);
 
   if (response.status !== 200) {
     const error = (response && response.message) || response.statusText;

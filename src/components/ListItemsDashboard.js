@@ -9,6 +9,7 @@ import PanoramaIcon from "@material-ui/icons/Panorama";
 import ScheduleIcon from "@material-ui/icons/Schedule";
 import MeetingRoomIcon from "@material-ui/icons/MeetingRoom";
 import { Link } from "react-router-dom";
+import FastfoodIcon from "@material-ui/icons/Fastfood";
 
 // component
 //import DashBoard from "./Dashboard";
@@ -39,6 +40,12 @@ export const mainListItems = (
         <MeetingRoomIcon />
       </ListItemIcon>
       <ListItemText primary="Rooms" />
+    </ListItem>
+    <ListItem button component={Link} to="/products">
+      <ListItemIcon>
+        <FastfoodIcon />
+      </ListItemIcon>
+      <ListItemText primary="Products" />
     </ListItem>
   </div>
 );

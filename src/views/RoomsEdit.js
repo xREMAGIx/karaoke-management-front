@@ -63,7 +63,7 @@ export default function RoomEditModal(props) {
     status: "",
   });
 
-  const { roomId, price, status } = formData;
+  const { roomId, price } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
