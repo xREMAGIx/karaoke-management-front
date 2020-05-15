@@ -10,11 +10,11 @@ export const productActions = {
   delete: _delete,
 };
 
-function getAll() {
+function getAll(url) {
   return (dispatch) => {
     dispatch(request());
-
-    productService.getAll().then(
+    console.log(url);
+    productService.getAll(url).then(
       (products) => dispatch(success(products)),
       (error) => dispatch(failure(error.toString()))
     );

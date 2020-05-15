@@ -74,9 +74,9 @@ export default function ScheduleAddModal() {
 
   const [userOption, setUserOption] = React.useState([]);
 
-  useEffect(() => {
-    dispatch(userActions.getAll());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(userActions.getAll());
+  // }, [dispatch]);
 
   useEffect(() => {
     if (users.items) setUserOption([...users.items]);
@@ -290,11 +290,11 @@ export default function ScheduleAddModal() {
                           //   value={
                           //     weekdaysOption[weekDayToIndex(schedule.weekDay)]
                           //   }
-                          getOptionLabel={(option) => option.name}
+                          getOptionLabel={(option) => option.username}
                           renderInput={(params) => (
                             <TextField
                               {...params}
-                              label="Weekdays"
+                              label="User"
                               variant="outlined"
                             />
                           )}

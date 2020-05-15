@@ -21,19 +21,19 @@ async function login(user) {
   };
   const body = JSON.stringify(user);
 
-  await axios
+  return await axios
     .post(`/api/auth/login`, body, requestConfig)
-    .then(handleResponse)
-    .catch((error) => handleResponse(error));
+    .then(handleResponse);
 }
 
 async function getMe() {
   const requestConfig = {
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Token ${localStorage.getItem("token")}`,
     },
   };
-  return await axios.get(`/api/auth/me`, requestConfig).then(handleResponse);
+  return await axios.get(`/api/auth/user`, requestConfig).then(handleResponse);
 }
 
 async function logout() {
@@ -42,14 +42,17 @@ async function logout() {
   localStorage.removeItem("user");
 }
 
-function getAll() {
-  const requestOptions = {};
+async function getAll() {
+  const requestOptions = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
 
-  return axios.get(`/api/users`, requestOptions).then(handleResponse);
+  return await axios.get(`/api/users`, requestOptions).then(handleResponse);
 }
 
 async function getById(id) {
-  console.log(id);
   const requestConfig = {
     //headers: authHeader(),
   };
@@ -77,13 +80,10 @@ async function add(user) {
   };
 
   const body = JSON.stringify(user);
-  await axios.post("/api/users/", body, config).then(handleResponse);
+  await axios.post("/api/auth/register", body, config).then(handleResponse);
 }
 
-async function update(id, user, image) {
-  const imageData = new FormData();
-  imageData.append("image", image);
-
+async function update(id, user) {
   const requestConfig = {
     headers: {
       //authHeader(),
@@ -93,30 +93,9 @@ async function update(id, user, image) {
 
   const body = JSON.stringify(user);
 
-  if (imageData.get("image")) {
-    try {
-      await axios.put(`/api/users/${id}`, body, requestConfig);
-    } catch (error) {
-      console.log(error);
-    }
-
-    const configFormData = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    };
-    try {
-      return await axios
-        .put("/api/users/" + id + "/image", imageData, configFormData)
-        .then(handleResponse);
-    } catch (error) {
-      console.log(error);
-    }
-  } else {
-    return await axios
-      .put(`/api/users/${id}`, body, requestConfig)
-      .then(handleResponse);
-  }
+  return await axios
+    .put(`/api/users/${id}`, body, requestConfig)
+    .then(handleResponse);
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
@@ -132,7 +111,7 @@ async function _delete(id) {
 
 function handleResponse(response) {
   let data;
-  if (response.data.data) data = response.data.data;
+  if (response.data) data = response.data;
 
   if (response.status !== 200) {
     const error = (response && response.message) || response.statusText;

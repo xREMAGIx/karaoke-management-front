@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
-import { productActions } from "../actions";
-import { Link } from "react-router-dom";
+import { receiptActions } from "../actions";
+
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import Table from "@material-ui/core/Table";
@@ -11,7 +11,6 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
-import Button from "@material-ui/core/Button";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
@@ -23,14 +22,12 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
 import InputBase from "@material-ui/core/InputBase";
-import CreateIcon from "@material-ui/icons/Create";
 import DeleteIcon from "@material-ui/icons/Delete";
 import SearchIcon from "@material-ui/icons/Search";
-import AddCircleIcon from "@material-ui/icons/AddCircle";
 import Skeleton from "@material-ui/lab/Skeleton";
-
-import { host } from "../constants";
-import { history } from "../store";
+import AddCircleIcon from "@material-ui/icons/AddCircle";
+import { Link } from "react-router-dom";
+import CreateIcon from "@material-ui/icons/Create";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -71,26 +68,35 @@ function stableSort(array, comparator) {
 
 const headCells = [
   {
-    id: "sku",
+    id: "room",
     numeric: false,
     disablePadding: true,
-    label: "SKU",
+    label: "Room Id",
   },
   {
-    id: "productName",
+    id: "checkInDate",
     numeric: false,
     disablePadding: true,
-    label: "Product Name",
+    label: "CheckIn Time",
   },
-  // { id: "img", numeric: false, disablePadding: false, label: "Image" },
-  { id: "price", numeric: true, disablePadding: false, label: "Price" },
-  { id: "stock", numeric: true, disablePadding: false, label: "Stock" },
-  // {
-  //   id: "create_at",
-  //   numeric: true,
-  //   disablePadding: false,
-  //   label: "Create Date",
-  // },
+  {
+    id: "checkOutDate",
+    numeric: false,
+    disablePadding: true,
+    label: "CheckOut Time",
+  },
+  {
+    id: "total",
+    numeric: false,
+    disablePadding: true,
+    label: "Total",
+  },
+  {
+    id: "createAt",
+    numeric: false,
+    disablePadding: true,
+    label: "Create At",
+  },
 ];
 
 function EnhancedTableHead(props) {
@@ -122,10 +128,6 @@ function EnhancedTableHead(props) {
           <TableCell
             key={headCell.id}
             align={headCell.numeric ? "right" : "left"}
-            style={{
-              whiteSpace: "normal",
-              wordWrap: "break-word",
-            }}
             padding={headCell.disablePadding ? "none" : "default"}
             sortDirection={orderBy === headCell.id ? order : false}
           >
@@ -218,14 +220,13 @@ const useToolbarStyles = makeStyles((theme) => ({
 }));
 
 const EnhancedTableToolbar = (props) => {
-  console.log(props);
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
   //const user = useSelector(state => state.authentication.user);
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
-    dispatch(productActions.delete(id));
+    dispatch(receiptActions.delete(id));
   };
 
   return (
@@ -245,7 +246,7 @@ const EnhancedTableToolbar = (props) => {
           </Typography>
         ) : (
           <Typography className={classes.title} variant="h6" id="tableTitle">
-            Products
+            Receipts
           </Typography>
         )}
 
@@ -256,7 +257,7 @@ const EnhancedTableToolbar = (props) => {
                 <Tooltip title="Modify">
                   <IconButton
                     component={Link}
-                    to={"/products-edit/" + selectedIndex[0]}
+                    to={"/receipts-edit/" + selectedIndex[0]}
                     aria-label="modify"
                   >
                     <CreateIcon />
@@ -294,13 +295,12 @@ const EnhancedTableToolbar = (props) => {
                     input: classes.inputInput,
                   }}
                   inputProps={{ "aria-label": "search" }}
-                  onChange={props.searchAction}
                 />
               </div>
             </Grid>
             <Grid item>
               <Tooltip title="Add new">
-                <IconButton component={Link} to="/products-add">
+                <IconButton component={Link} to="/receipts-add">
                   <AddCircleIcon />
                 </IconButton>
               </Tooltip>
@@ -353,7 +353,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Products() {
+export default function Receipts(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
@@ -361,52 +361,16 @@ export default function Products() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const [searchResults, setSearchResults] = React.useState([]);
-  const [searchTerm, setSearchTerm] = React.useState("");
-
-  //const user = useSelector(state => state.authentication.user);
-
-  const products = useSelector((state) => state.products);
-  console.log(products);
+  const receipts = useSelector((state) => state.receipts);
   const dispatch = useDispatch();
 
-  var pageRows = [];
-  for (let i = 1; i <= products.maxPage; i++) {
-    // note: we add a key prop here to allow react to uniquely identify each
-    // element in this array. see: https://reactjs.org/docs/lists-and-keys.html
-
-    pageRows.push(
-      <Button
-        key={i}
-        onClick={() =>
-          dispatch(productActions.getAll(`/api/products/?page=${i}`))
-        }
-      >
-        {i}
-      </Button>
-    );
-  }
-
   useEffect(() => {
-    console.log(history.location.state);
-  }, []);
-
-  useEffect(() => {
-    dispatch(productActions.getAll());
+    dispatch(receiptActions.getAll());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (products.items) {
-      const results = products.items.filter((product) =>
-        product.productName.toLowerCase().includes(searchTerm)
-      );
-      setSearchResults(results);
-    }
-  }, [searchTerm, products.items]);
-
-  const handleChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
+  // useEffect(() => {
+  //   console.log(JSON.parse(users.items[0].content));
+  // }, [users.items]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -416,7 +380,7 @@ export default function Products() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = products.items.map((n) => n._id);
+      const newSelecteds = receipts.items.map((n) => n._id);
       setSelected(newSelecteds);
       return;
     }
@@ -462,23 +426,16 @@ export default function Products() {
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
-
           <Container maxWidth="lg" className={classes.mainContainer}>
-            {!products.items ? (
-              <Skeleton
-                variant="rect"
-                width={"100%"}
-                height={50}
-                style={{ marginBottom: "10px" }}
-              />
+            {!receipts.items ? (
+              <Skeleton variant="rect" width={"100%"} height={50} />
             ) : (
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
-                searchAction={handleChange}
               />
             )}
             <TableContainer className={classes.tableContainer}>
@@ -488,8 +445,13 @@ export default function Products() {
                 aria-labelledby="tableTitle"
                 aria-label="enhanced table"
               >
-                {!products.items ? (
-                  <Skeleton variant="rect" width={"100%"} height={40} />
+                {!receipts.items ? (
+                  <Skeleton
+                    variant="rect"
+                    width={"100%"}
+                    height={40}
+                    style={{ marginTop: "10px" }}
+                  />
                 ) : (
                   <EnhancedTableHead
                     classes={classes}
@@ -498,112 +460,66 @@ export default function Products() {
                     orderBy={orderBy}
                     onSelectAllClick={handleSelectAllClick}
                     onRequestSort={handleRequestSort}
-                    rowCount={products.items.length}
+                    rowCount={receipts.items.length}
                   />
                 )}
-                {!products.items ? (
-                  <Skeleton variant="rect" width={"100%"} height={100} />
+                {!receipts.items ? (
+                  <Skeleton
+                    variant="rect"
+                    width={"100%"}
+                    height={100}
+                    style={{ marginTop: "10px" }}
+                  />
                 ) : (
                   <TableBody>
-                    {Array.isArray(products.items) &&
-                      stableSort(searchResults, getComparator(order, orderBy))
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((row, index) => {
-                          const isItemSelected = isSelected(row.id);
-                          const labelId = `enhanced-table-checkbox-${index}`;
+                    {stableSort(receipts.items, getComparator(order, orderBy))
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((row, index) => {
+                        const isItemSelected = isSelected(row._id);
+                        const labelId = `enhanced-table-checkbox-${index}`;
 
-                          return (
-                            <TableRow
-                              hover
-                              onClick={(event) => handleClick(event, row.id)}
-                              role="checkbox"
-                              aria-checked={isItemSelected}
-                              tabIndex={-1}
-                              key={row.sku}
-                              selected={isItemSelected}
+                        return (
+                          <TableRow
+                            hover
+                            onClick={(event) => handleClick(event, row._id)}
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            tabIndex={-1}
+                            key={row._id}
+                            selected={isItemSelected}
+                          >
+                            <TableCell>
+                              <Checkbox
+                                checked={isItemSelected}
+                                inputProps={{ "aria-labelledby": labelId }}
+                              />
+                            </TableCell>
+                            <TableCell
+                              component="th"
+                              id={labelId}
+                              scope="row"
+                              padding="none"
                             >
-                              <TableCell>
-                                <Checkbox
-                                  checked={isItemSelected}
-                                  inputProps={{ "aria-labelledby": labelId }}
-                                />
-                              </TableCell>
-                              <TableCell
-                                component="th"
-                                id={labelId}
-                                scope="row"
-                                padding="none"
-                              >
-                                <Grid item xs zeroMinWidth>
-                                  <Typography variant="body2" noWrap>
-                                    {row.sku}
-                                  </Typography>
-                                </Grid>
-                              </TableCell>
-                              <TableCell scope="row" padding="none">
-                                <Grid item xs zeroMinWidth>
-                                  <Typography variant="body2" noWrap>
-                                    {row.productName}
-                                  </Typography>
-                                </Grid>
-                              </TableCell>
-                              {/* <TableCell scope="row" padding="none">
-                                {categories.items.length !== 0
-                                  ? categories.items.filter((category) => {
-                                      return category._id === row.category;
-                                    })[0].name
-                                  : null}
-                              </TableCell>
-                              <TableCell scope="row" padding="none">
-                                {brands.items.length !== 0
-                                  ? brands.items.filter((brand) => {
-                                      return brand._id === row.brand;
-                                    })[0].name
-                                  : null}
-                              </TableCell> */}
-                              {/* <TableCell padding="none">
-                                {row.images.length > 0 ? (
-                                  <img
-                                    className={classes.img}
-                                    src={
-                                      "http://localhost:5000/uploads/" +
-                                      row.images[0].path
-                                    }
-                                    alt="broken"
-                                  />
-                                ) : null}
-                              </TableCell> */}
-                              <TableCell align="right">
-                                {row.price.toLocaleString()}
-                              </TableCell>
-                              <TableCell align="right">{row.stock}</TableCell>
-                              {/* <TableCell align="right">
-                                {row.discount}%
-                              </TableCell>
-                              <TableCell
-                                style={{
-                                  maxWidth: "5vw",
-                                  whiteSpace: "normal",
-                                  wordWrap: "break-word",
-                                }}
-                                scope="row"
-                                // padding="none"
-                              >
-                                <Grid item xs zeroMinWidth>
-                                  <Typography variant="body2" noWrap>
-                                    {row.description}
-                                  </Typography>
-                                </Grid>
-                              </TableCell> */}
-                              {/* <TableCell align="right">
-                                {dateFormat(row.create_at)}
-                              </TableCell> */}
-                            </TableRow>
-                          );
-                        })}
+                              {row.room}
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              {dateFormat(row.checkInDate)}
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              {dateFormat(row.checkOutDate)}
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              {row.total}
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              {dateFormat(row.createdAt)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />
@@ -613,7 +529,7 @@ export default function Products() {
                 )}
               </Table>
             </TableContainer>
-            {!products.items ? (
+            {!receipts.items ? (
               <Skeleton
                 variant="rect"
                 width={400}
@@ -621,37 +537,15 @@ export default function Products() {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
-              <React.Fragment>
-                {<div>{pageRows}</div>}
-                {products.previous === null ? (
-                  <Button disabled>Previous</Button>
-                ) : (
-                  <Button
-                    onClick={() =>
-                      dispatch(
-                        productActions.getAll(
-                          products.previous.replace(host, "")
-                        )
-                      )
-                    }
-                  >
-                    Previos
-                  </Button>
-                )}
-                {products.next === null ? (
-                  <Button disabled>Next</Button>
-                ) : (
-                  <Button
-                    onClick={() =>
-                      dispatch(
-                        productActions.getAll(products.next.replace(host, ""))
-                      )
-                    }
-                  >
-                    Next
-                  </Button>
-                )}
-              </React.Fragment>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={receipts.items.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onChangePage={handleChangePage}
+                onChangeRowsPerPage={handleChangeRowsPerPage}
+              />
             )}
           </Container>
         </main>

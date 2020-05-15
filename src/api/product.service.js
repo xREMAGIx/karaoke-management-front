@@ -9,12 +9,14 @@ export const productService = {
   delete: _delete,
 };
 
-async function getAll() {
+async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
-  console.log(2);
-  return await axios.get(`/api/products`, requestConfig).then(handleResponse);
+  const params = url === null ? `/api/products` : url;
+  console.log("param", params);
+
+  return await axios.get(params, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {
@@ -69,7 +71,7 @@ async function add(product, image) {
     }
   } else {
     return await axios
-      .post("/api/products", body, requestConfig)
+      .post("/api/products/", body, requestConfig)
       .then(handleResponse);
   }
 }
@@ -127,7 +129,7 @@ async function update(id, product, image, delImage) {
     }
   } else {
     return await axios
-      .put(`/api/products/${id}`, body, requestConfig)
+      .put(`/api/products/${id}/`, body, requestConfig)
       .then(handleResponse);
   }
 }
@@ -144,9 +146,10 @@ async function _delete(id) {
 }
 
 function handleResponse(response) {
-  const data = response.data.data;
-  console.log(data);
-  if (response.status !== 200) {
+  let data;
+  data = response.data;
+
+  if (response.status === 404) {
     // if (response.status === 401) {
     //   // auto logout if 401 response returned from api
     //   //logout();

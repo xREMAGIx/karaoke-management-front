@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
 export default function SignUp() {
   const classes = useStyles();
   const [formData, setFormData] = React.useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -69,7 +69,7 @@ export default function SignUp() {
   const [open, setOpen] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
 
-  const { name, email, password, confirmPassword } = formData;
+  const { username, email, password, confirmPassword } = formData;
 
   const users = useSelector((state) => state.users);
   const dispatch = useDispatch();
@@ -84,7 +84,7 @@ export default function SignUp() {
 
   const onSubmit = async () => {
     // perform all neccassary validations
-    if ((name && email && password && confirmPassword) === "") {
+    if ((username && email && password && confirmPassword) === "") {
       setOpen(true);
       setErrorMessage("Please fill all required field");
     } else if (password.length < 5) {
@@ -141,11 +141,11 @@ export default function SignUp() {
               variant="outlined"
               required
               fullWidth
-              id="name"
+              id="username"
               label="Name"
-              name="name"
+              name="username"
               autoComplete="name"
-              value={name}
+              value={username}
               onKeyPress={(e) => keyPressed(e)}
               onChange={(e) => onChange(e)}
             />

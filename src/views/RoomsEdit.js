@@ -101,9 +101,9 @@ export default function RoomEditModal(props) {
     //setOnImageChange({ ...formData.image });
   }, [rooms.item]);
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
+  // useEffect(() => {
+  //   console.log(formData);
+  // }, [formData]);
 
   const statusToIndex = (status) => {
     switch (status) {

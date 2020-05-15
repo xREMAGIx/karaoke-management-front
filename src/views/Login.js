@@ -59,7 +59,7 @@ export default function SignIn() {
   const classes = useStyles();
 
   const [formData, setFormData] = React.useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -71,7 +71,7 @@ export default function SignIn() {
   const users = useSelector((state) => state.users);
   const dispatch = useDispatch();
 
-  const { email, password } = formData;
+  const { username, password } = formData;
 
   useEffect(() => {
     if (history.location.state === 200) setSuccessOpen(true);
@@ -92,7 +92,7 @@ export default function SignIn() {
   };
 
   const onSubmit = () => {
-    if (email === "" || password === "") {
+    if (username === "" || password === "") {
       setErrorOpen(true);
       setErrorMessage("Please fill out all required field");
     } else {
@@ -149,12 +149,12 @@ export default function SignIn() {
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
+            id="username"
+            label="Username"
+            name="username"
+            autoComplete="usernam"
             autoFocus
-            value={email}
+            value={username}
             onKeyPress={(e) => keyPressed(e)}
             onChange={(e) => onChange(e)}
           />

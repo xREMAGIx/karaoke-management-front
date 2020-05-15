@@ -11,10 +11,10 @@ export const scheduleActions = {
 };
 
 function getAll() {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request());
 
-    scheduleService.getAll().then(
+    await scheduleService.getAll().then(
       (schedules) => {
         console.log(schedules);
         dispatch(success(schedules));

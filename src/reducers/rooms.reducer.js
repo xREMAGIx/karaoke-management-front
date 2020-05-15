@@ -15,6 +15,7 @@ export function rooms(state = initialState, action) {
         loading: true,
       };
     case roomConstants.GETALL_SUCCESS:
+      console.log(action);
       return {
         ...state,
         items: action.rooms,

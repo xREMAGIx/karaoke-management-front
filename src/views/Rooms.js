@@ -85,7 +85,7 @@ const headCells = [
     label: "Status",
   },
   {
-    id: "createAt",
+    id: "create_at",
     numeric: false,
     disablePadding: true,
     label: "Create At",
@@ -460,17 +460,17 @@ export default function Rooms(props) {
                         page * rowsPerPage + rowsPerPage
                       )
                       .map((row, index) => {
-                        const isItemSelected = isSelected(row._id);
+                        const isItemSelected = isSelected(row.id);
                         const labelId = `enhanced-table-checkbox-${index}`;
 
                         return (
                           <TableRow
                             hover
-                            onClick={(event) => handleClick(event, row._id)}
+                            onClick={(event) => handleClick(event, row.id)}
                             role="checkbox"
                             aria-checked={isItemSelected}
                             tabIndex={-1}
-                            key={row._id}
+                            key={row.id}
                             selected={isItemSelected}
                           >
                             <TableCell>
@@ -494,7 +494,7 @@ export default function Rooms(props) {
                               {row.status}
                             </TableCell>
                             <TableCell scope="row" padding="none">
-                              {dateFormat(row.createdAt)}
+                              {dateFormat(row.created_at)}
                             </TableCell>
                           </TableRow>
                         );

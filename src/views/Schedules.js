@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
-import { scheduleActions } from "../actions";
+import { scheduleActions, userActions } from "../actions";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -79,23 +79,18 @@ const headCells = [
     label: "Days of week",
   },
   {
-    id: "start",
+    id: "workingTime",
     numeric: false,
     disablePadding: true,
-    label: "Start time",
+    label: "Working time",
   },
-  {
-    id: "end",
-    numeric: false,
-    disablePadding: true,
-    label: "End time",
-  },
-  {
-    id: "createAt",
-    numeric: false,
-    disablePadding: true,
-    label: "Create At",
-  },
+
+  // {
+  //   id: "createAt",
+  //   numeric: false,
+  //   disablePadding: true,
+  //   label: "Create At",
+  // },
 ];
 
 function EnhancedTableHead(props) {
@@ -347,16 +342,22 @@ export default function Schedules(props) {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const schedules = useSelector((state) => state.schedules);
+  const users = useSelector((state) => state.users);
   //const schedule = useSelector(state => state.authentication.schedule);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(scheduleActions.getAll());
+    dispatch(userActions.getAll());
   }, [dispatch]);
 
   useEffect(() => {
     console.log(schedules.items);
   }, [schedules.items]);
+
+  useEffect(() => {
+    console.log(users.items);
+  }, [users.items]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -449,7 +450,7 @@ export default function Schedules(props) {
                     rowCount={schedules.items.length}
                   />
                 )}
-                {!schedules.items ? (
+                {!schedules.items && !users.items ? (
                   <Skeleton
                     variant="rect"
                     width={"100%"}
@@ -464,17 +465,17 @@ export default function Schedules(props) {
                         page * rowsPerPage + rowsPerPage
                       )
                       .map((row, index) => {
-                        const isItemSelected = isSelected(row._id);
+                        const isItemSelected = isSelected(row.id);
                         const labelId = `enhanced-table-checkbox-${index}`;
 
                         return (
                           <TableRow
                             hover
-                            onClick={(event) => handleClick(event, row._id)}
+                            onClick={(event) => handleClick(event, row.id)}
                             role="checkbox"
                             aria-checked={isItemSelected}
                             tabIndex={-1}
-                            key={row._id}
+                            key={row.id}
                             selected={isItemSelected}
                           >
                             <TableCell>
@@ -489,20 +490,21 @@ export default function Schedules(props) {
                               scope="row"
                               padding="none"
                             >
-                              {row.staff.name}
+                              {users.items
+                                ? users.items.find((x) => x.id === row.staff)
+                                    .username
+                                : row.staff}
                             </TableCell>
                             <TableCell scope="row" padding="none">
                               {row.weekDay}
                             </TableCell>
                             <TableCell scope="row" padding="none">
-                              {row.start}
+                              {row.workingTime}
                             </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.end}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {dateFormat(row.createdAt)}
-                            </TableCell>
+
+                            {/* <TableCell scope="row" padding="none">
+                              {dateFormat(row.created_at)}
+                            </TableCell> */}
                           </TableRow>
                         );
                       })}
@@ -515,7 +517,7 @@ export default function Schedules(props) {
                 )}
               </Table>
             </TableContainer>
-            {!schedules.items ? (
+            {!schedules.items && !users.items ? (
               <Skeleton
                 variant="rect"
                 width={400}

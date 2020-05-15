@@ -13,8 +13,9 @@ async function getAll() {
   const requestConfig = {
     //headers: authHeader()
   };
+  console.log(2);
 
-  return await axios.get(`/api/rooms`, requestConfig).then(handleResponse);
+  return await axios.get(`/api/rooms/`, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {
@@ -22,7 +23,7 @@ async function getById(id) {
     //headers: authHeader(),
   };
   return await axios
-    .get(`/api/rooms/${id}`, requestConfig)
+    .get(`/api/rooms/${id}/`, requestConfig)
     .then(handleResponse);
 }
 
@@ -38,7 +39,7 @@ async function add(room) {
   console.log(body);
 
   return await axios
-    .post("/api/rooms", body, requestConfig)
+    .post("/api/rooms/", body, requestConfig)
     .then(handleResponse);
 }
 
@@ -54,7 +55,7 @@ async function update(id, room) {
   console.log(body);
 
   return await axios
-    .put(`/api/rooms/${id}`, body, requestConfig)
+    .put(`/api/rooms/${id}/`, body, requestConfig)
     .then(handleResponse);
 }
 
@@ -65,13 +66,15 @@ async function _delete(id) {
   };
 
   return await axios
-    .delete(`/api/rooms/${id}`, requestConfig)
+    .delete(`/api/rooms/${id}/`, requestConfig)
     .then(handleResponse);
 }
 
 function handleResponse(response) {
-  const data = response.data.data;
-  if (response.status !== 200) {
+  let data;
+  if (response.data.results) data = response.data.results;
+  else data = response.data;
+  if (response.status === 404) {
     // if (response.status === 401) {
     //   // auto logout if 401 response returned from api
     //   //logout();
@@ -82,5 +85,6 @@ function handleResponse(response) {
     return Promise.reject(error);
   }
 
+  console.log(data);
   return data;
 }

@@ -43,13 +43,13 @@ export default function UserAdd(props) {
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
-    salary: 0,
+    //salary: 0,
   });
 
-  const { name, email, password, salary } = formData;
+  const { username, email, password, salary } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -80,8 +80,8 @@ export default function UserAdd(props) {
               label="User name"
               id="outlined-name"
               variant="outlined"
-              name="name"
-              value={name}
+              name="username"
+              value={username}
               onChange={(e) => onChange(e)}
               onKeyPress={(e) => keyPressed(e)}
             />
@@ -108,7 +108,7 @@ export default function UserAdd(props) {
               onChange={(e) => onChange(e)}
               onKeyPress={(e) => keyPressed(e)}
             />
-            <TextField
+            {/* <TextField
               fullWidth
               style={{ marginTop: "10px" }}
               label="Salary"
@@ -118,7 +118,7 @@ export default function UserAdd(props) {
               value={salary}
               onChange={(e) => onChange(e)}
               onKeyPress={(e) => keyPressed(e)}
-            />
+            /> */}
             <Grid
               style={{ marginTop: "10px" }}
               container

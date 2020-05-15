@@ -74,14 +74,14 @@ export default function UserEdit(props) {
   const users = useSelector((state) => state.users);
 
   const [formData, setFormData] = useState({
-    name: "a",
+    username: "a",
     email: "b",
     salary: 1,
   });
 
   const [newSchedules, setNewSchedules] = React.useState([]);
 
-  const { name, email, salary } = formData;
+  const { username, email, salary } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -186,8 +186,6 @@ export default function UserEdit(props) {
   };
 
   const onDelete = (index) => {
-    console.log(index);
-    console.log(newSchedules, " con acac");
     newSchedules.splice(index, 1);
 
     setNewSchedules([...newSchedules]);
@@ -275,8 +273,8 @@ export default function UserEdit(props) {
                       label="User name"
                       id="outlined-name"
                       variant="outlined"
-                      name="name"
-                      value={name || ""}
+                      name="username"
+                      value={username || ""}
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />

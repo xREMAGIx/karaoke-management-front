@@ -45,8 +45,8 @@ function login(user) {
     dispatch(request({ user }));
 
     userService.login(user).then(
-      (user) => {
-        dispatch(success(user));
+      (data) => {
+        dispatch(success(data));
         dispatch(requestGetMe());
 
         userService.getMe().then(
@@ -69,8 +69,8 @@ function login(user) {
   function request(user) {
     return { type: userConstants.LOGIN_REQUEST, user };
   }
-  function success(user) {
-    return { type: userConstants.LOGIN_SUCCESS, user };
+  function success(data) {
+    return { type: userConstants.LOGIN_SUCCESS, data };
   }
   function failure(error) {
     return { type: userConstants.LOGIN_FAILURE, error };
@@ -147,10 +147,10 @@ function add(user) {
 }
 
 function getAll() {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request());
 
-    userService.getAll().then(
+    await userService.getAll().then(
       (users) => {
         dispatch(success(users));
         console.log(users);

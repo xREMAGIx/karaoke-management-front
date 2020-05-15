@@ -10,6 +10,7 @@ import ScheduleIcon from "@material-ui/icons/Schedule";
 import MeetingRoomIcon from "@material-ui/icons/MeetingRoom";
 import { Link } from "react-router-dom";
 import FastfoodIcon from "@material-ui/icons/Fastfood";
+import ReceiptIcon from "@material-ui/icons/Receipt";
 
 // component
 //import DashBoard from "./Dashboard";
@@ -46,6 +47,12 @@ export const mainListItems = (
         <FastfoodIcon />
       </ListItemIcon>
       <ListItemText primary="Products" />
+    </ListItem>
+    <ListItem button component={Link} to="/receipts">
+      <ListItemIcon>
+        <ReceiptIcon />
+      </ListItemIcon>
+      <ListItemText primary="Receipts" />
     </ListItem>
   </div>
 );

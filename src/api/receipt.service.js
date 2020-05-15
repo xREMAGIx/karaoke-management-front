@@ -1,7 +1,7 @@
 //import { authHeader } from "../_helpers";
 import axios from "axios";
 
-export const scheduleService = {
+export const receiptService = {
   getAll,
   getById,
   add,
@@ -14,7 +14,7 @@ async function getAll() {
     //headers: authHeader()
   };
 
-  return await axios.get(`/api/schedules/`, requestConfig).then(handleResponse);
+  return await axios.get(`/api/payments`, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {
@@ -22,11 +22,11 @@ async function getById(id) {
     //headers: authHeader(),
   };
   return await axios
-    .get(`/api/schedules/${id}`, requestConfig)
+    .get(`/api/payments/${id}`, requestConfig)
     .then(handleResponse);
 }
 
-async function add(schedule) {
+async function add(receipt) {
   const requestConfig = {
     headers: {
       //authHeader(),
@@ -34,15 +34,15 @@ async function add(schedule) {
     },
   };
 
-  const body = JSON.stringify(schedule);
+  const body = JSON.stringify(receipt);
   console.log(body);
 
   return await axios
-    .post("/api/schedules", body, requestConfig)
+    .post("/api/payments", body, requestConfig)
     .then(handleResponse);
 }
 
-async function update(id, schedule) {
+async function update(id, receipt) {
   const requestConfig = {
     headers: {
       //authHeader(),
@@ -50,11 +50,11 @@ async function update(id, schedule) {
     },
   };
 
-  const body = JSON.stringify(schedule);
+  const body = JSON.stringify(receipt);
   console.log(body);
 
   return await axios
-    .put(`/api/schedules/${id}`, body, requestConfig)
+    .put(`/api/payments/${id}`, body, requestConfig)
     .then(handleResponse);
 }
 
@@ -65,13 +65,13 @@ async function _delete(id) {
   };
 
   return await axios
-    .delete(`/api/schedules/${id}`, requestConfig)
+    .delete(`/api/payments/${id}`, requestConfig)
     .then(handleResponse);
 }
 
 function handleResponse(response) {
-  const data = response.data;
-  if (response.status === 404) {
+  const data = response.data.data;
+  if (response.status !== 200) {
     // if (response.status === 401) {
     //   // auto logout if 401 response returned from api
     //   //logout();

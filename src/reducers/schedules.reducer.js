@@ -6,9 +6,13 @@ const initialState = {
   schedule: null,
   items: [],
   item: [],
+  maxPage: null,
+  currentPage: null,
+  deleteId: null,
 };
 
 export function schedules(state = initialState, action) {
+  console.log(action);
   switch (action.type) {
     case scheduleConstants.GETALL_REQUEST:
       return {
@@ -17,7 +21,7 @@ export function schedules(state = initialState, action) {
     case scheduleConstants.GETALL_SUCCESS:
       return {
         ...state,
-        items: action.schedules,
+        items: action.schedules.results,
       };
     case scheduleConstants.GETALL_FAILURE:
       return {
@@ -27,6 +31,7 @@ export function schedules(state = initialState, action) {
       // add 'deleting:true' property to schedule being deleted
       return {
         ...state,
+        deleteId: action.id,
         items: state.items.map((schedule) =>
           schedule.id === action.id ? { ...schedule, deleting: true } : schedule
         ),
@@ -34,7 +39,8 @@ export function schedules(state = initialState, action) {
     case scheduleConstants.DELETE_SUCCESS:
       // remove deleted schedule from state
       return {
-        items: state.items.filter((schedule) => schedule.id !== action.id),
+        items: state.items.filter((schedule) => schedule.id !== state.deleteId),
+        deleteId: null,
       };
     case scheduleConstants.DELETE_FAILURE:
       // remove 'deleting:true' property and add 'deleteError:[error]' property to schedule

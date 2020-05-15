@@ -6,6 +6,10 @@ const initialState = {
   product: null,
   items: [],
   item: [],
+  next: null,
+  previous: null,
+  maxPage: null,
+  currentPage: null,
 };
 
 export function products(state = initialState, action) {
@@ -17,7 +21,11 @@ export function products(state = initialState, action) {
     case productConstants.GETALL_SUCCESS:
       return {
         ...state,
-        items: action.products,
+        next: action.products.next,
+        previous: action.products.previous,
+        items: action.products.results,
+        maxPage: action.products.maxPage,
+        currentPage: action.products.currentPage,
       };
     case productConstants.GETALL_FAILURE:
       return {
