@@ -11,7 +11,6 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -26,6 +25,8 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import SearchIcon from "@material-ui/icons/Search";
 import Skeleton from "@material-ui/lab/Skeleton";
 import ScheduleAddModal from "./SchedulesAdd";
+import Pagination from "@material-ui/lab/Pagination";
+import TextField from "@material-ui/core/TextField";
 // import ScheduleEditModal from "./SchedulesEdit";
 
 function dateFormat(date) {
@@ -341,6 +342,9 @@ export default function Schedules(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [pageValue, setPageValue] = React.useState(1);
+  const [pageValueText, setPageValueText] = React.useState(1);
+
   const schedules = useSelector((state) => state.schedules);
   const users = useSelector((state) => state.users);
   //const schedule = useSelector(state => state.authentication.schedule);
@@ -409,6 +413,22 @@ export default function Schedules(props) {
   //   rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   const emptyRows = 0;
+
+  const handlePageChange = (event, value) => {
+    dispatch(scheduleActions.getAll(`/api/products/?page=${value}`));
+    setPageValue(value);
+  };
+
+  const onChange = (e) => {
+    setPageValueText(parseInt(e.target.value));
+  };
+
+  const keyPressed = (e) => {
+    if (e.key === "Enter")
+      if (pageValueText < schedules.maxPage + 1 && pageValueText > 0) {
+        handlePageChange(e, pageValueText);
+      }
+  };
 
   return (
     <React.Fragment>
@@ -525,15 +545,32 @@ export default function Schedules(props) {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={schedules.items.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-              />
+              <Grid
+                container
+                style={{ marginTop: "10px" }}
+                justify="flex-end"
+                alignItems="center"
+              >
+                <Grid item>
+                  <Pagination
+                    color="primary"
+                    count={schedules.maxPage}
+                    page={pageValue}
+                    onChange={handlePageChange}
+                  />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    style={{ width: "100px" }}
+                    label="page"
+                    id="outlined-page"
+                    variant="outlined"
+                    type="number"
+                    onChange={(e) => onChange(e)}
+                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  />
+                </Grid>
+              </Grid>
             )}
           </Container>
         </main>

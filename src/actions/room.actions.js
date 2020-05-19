@@ -11,10 +11,10 @@ export const roomActions = {
 };
 
 function getAll() {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request());
 
-    roomService.getAll().then(
+    await roomService.getAll().then(
       (rooms) => {
         console.log(rooms);
         dispatch(success(rooms));

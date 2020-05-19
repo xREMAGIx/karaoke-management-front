@@ -11,7 +11,8 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
+import Pagination from "@material-ui/lab/Pagination";
+import TextField from "@material-ui/core/TextField";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -332,6 +333,11 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: 50,
     maxWidth: 100,
   },
+  tableRow: {
+    "& .MuiTableCell-root": {
+      padding: 0,
+    },
+  },
 }));
 
 export default function Rooms(props) {
@@ -342,6 +348,9 @@ export default function Rooms(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [pageValue, setPageValue] = React.useState(1);
+  const [pageValueText, setPageValueText] = React.useState(1);
+
   const rooms = useSelector((state) => state.rooms);
   //const room = useSelector(state => state.authentication.room);
   const dispatch = useDispatch();
@@ -349,10 +358,6 @@ export default function Rooms(props) {
   useEffect(() => {
     dispatch(roomActions.getAll());
   }, [dispatch]);
-
-  useEffect(() => {
-    console.log(rooms.items);
-  }, [rooms.items]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -404,6 +409,22 @@ export default function Rooms(props) {
   //   rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   const emptyRows = 0;
+
+  const handlePageChange = (event, value) => {
+    dispatch(roomActions.getAll(`/api/rooms/?page=${value}`));
+    setPageValue(value);
+  };
+
+  const onChange = (e) => {
+    setPageValueText(parseInt(e.target.value));
+  };
+
+  const keyPressed = (e) => {
+    if (e.key === "Enter")
+      if (pageValueText < rooms.maxPage + 1 && pageValueText > 0) {
+        handlePageChange(e, pageValueText);
+      }
+  };
 
   return (
     <React.Fragment>
@@ -472,6 +493,7 @@ export default function Rooms(props) {
                             tabIndex={-1}
                             key={row.id}
                             selected={isItemSelected}
+                            className={classes.tableRow}
                           >
                             <TableCell>
                               <Checkbox
@@ -516,15 +538,32 @@ export default function Rooms(props) {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={rooms.items.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-              />
+              <Grid
+                container
+                style={{ marginTop: "10px" }}
+                justify="flex-end"
+                alignItems="center"
+              >
+                <Grid item>
+                  <Pagination
+                    color="primary"
+                    count={rooms.maxPage}
+                    page={pageValue}
+                    onChange={handlePageChange}
+                  />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    style={{ width: "100px" }}
+                    label="page"
+                    id="outlined-page"
+                    variant="outlined"
+                    type="number"
+                    onChange={(e) => onChange(e)}
+                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  />
+                </Grid>
+              </Grid>
             )}
           </Container>
         </main>

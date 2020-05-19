@@ -11,12 +11,11 @@ export const receiptActions = {
 };
 
 function getAll() {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request());
 
-    receiptService.getAll().then(
+    await receiptService.getAll().then(
       (receipts) => {
-        console.log(receipts);
         dispatch(success(receipts));
       },
       (error) => dispatch(failure(error.toString()))
@@ -86,12 +85,13 @@ function add(receipt) {
 }
 
 function update(id, receipt) {
+  console.log(receipt);
   return async (dispatch) => {
     dispatch(request(id));
     await receiptService.update(id, receipt).then(
       (id) => {
         dispatch(success(id));
-        window.location.reload();
+        history.push("/receipts");
         //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {

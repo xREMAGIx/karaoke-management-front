@@ -5,16 +5,36 @@ import { history } from "../store";
 export const productActions = {
   add,
   getAll,
+  getAllNonPagination,
   getById,
   update,
   delete: _delete,
 };
 
 function getAll(url) {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request());
-    console.log(url);
-    productService.getAll(url).then(
+    await productService.getAll(url).then(
+      (products) => dispatch(success(products)),
+      (error) => dispatch(failure(error.toString()))
+    );
+  };
+
+  function request() {
+    return { type: productConstants.GETALL_REQUEST };
+  }
+  function success(products) {
+    return { type: productConstants.GETALL_SUCCESS, products };
+  }
+  function failure(error) {
+    return { type: productConstants.GETALL_FAILURE, error };
+  }
+}
+
+function getAllNonPagination() {
+  return async (dispatch) => {
+    dispatch(request());
+    await productService.getAllNonPagination().then(
       (products) => dispatch(success(products)),
       (error) => dispatch(failure(error.toString()))
     );

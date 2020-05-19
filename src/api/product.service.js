@@ -3,6 +3,7 @@ import axios from "axios";
 
 export const productService = {
   getAll,
+  getAllNonPagination,
   getById,
   add,
   update,
@@ -14,9 +15,17 @@ async function getAll(url = null) {
     //headers: authHeader()
   };
   const params = url === null ? `/api/products` : url;
-  console.log("param", params);
 
   return await axios.get(params, requestConfig).then(handleResponse);
+}
+
+async function getAllNonPagination() {
+  const requestConfig = {
+    //headers: authHeader(),
+  };
+  return await axios
+    .get(`/api/allProducts/`, requestConfig)
+    .then(handleResponse);
 }
 
 async function getById(id) {

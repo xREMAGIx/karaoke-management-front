@@ -91,12 +91,12 @@ const headCells = [
     disablePadding: true,
     label: "Total",
   },
-  {
-    id: "createAt",
-    numeric: false,
-    disablePadding: true,
-    label: "Create At",
-  },
+  // {
+  //   id: "createAt",
+  //   numeric: false,
+  //   disablePadding: true,
+  //   label: "Create At",
+  // },
 ];
 
 function EnhancedTableHead(props) {
@@ -380,7 +380,7 @@ export default function Receipts(props) {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = receipts.items.map((n) => n._id);
+      const newSelecteds = receipts.items.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -478,17 +478,17 @@ export default function Receipts(props) {
                         page * rowsPerPage + rowsPerPage
                       )
                       .map((row, index) => {
-                        const isItemSelected = isSelected(row._id);
+                        const isItemSelected = isSelected(row.id);
                         const labelId = `enhanced-table-checkbox-${index}`;
 
                         return (
                           <TableRow
                             hover
-                            onClick={(event) => handleClick(event, row._id)}
+                            onClick={(event) => handleClick(event, row.id)}
                             role="checkbox"
                             aria-checked={isItemSelected}
                             tabIndex={-1}
-                            key={row._id}
+                            key={row.id}
                             selected={isItemSelected}
                           >
                             <TableCell>
@@ -514,9 +514,9 @@ export default function Receipts(props) {
                             <TableCell scope="row" padding="none">
                               {row.total}
                             </TableCell>
-                            <TableCell scope="row" padding="none">
+                            {/* <TableCell scope="row" padding="none">
                               {dateFormat(row.createdAt)}
-                            </TableCell>
+                            </TableCell> */}
                           </TableRow>
                         );
                       })}

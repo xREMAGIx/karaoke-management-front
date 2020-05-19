@@ -37,6 +37,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const statusOption = [
+  { title: "Checked In", value: "checkedIn" },
+  { title: "Checked Out", value: "checkedOut" },
+];
+
 export default function ReceiptAdd(props) {
   const classes = useStyles();
   const rooms = useSelector((state) => state.rooms);
@@ -49,6 +54,17 @@ export default function ReceiptAdd(props) {
 
   const [newProducts, setNewProducts] = React.useState([]);
 
+  const statusToIndex = (status) => {
+    switch (status) {
+      case "checkedIn":
+        return 0;
+      case "checkedOut":
+        return 1;
+      default:
+        return 0;
+    }
+  };
+
   useEffect(() => {
     dispatch(roomActions.getAll());
     dispatch(productActions.getAll());
@@ -56,7 +72,13 @@ export default function ReceiptAdd(props) {
 
   const handleRoomSelected = (value) => {
     if (value) {
-      setFormData({ ...formData, room: value._id });
+      setFormData({ ...formData, room: value.id });
+    }
+  };
+
+  const handleStatusSelected = (value) => {
+    if (value) {
+      setFormData({ ...formData, status: value.value });
     }
   };
 
@@ -71,7 +93,7 @@ export default function ReceiptAdd(props) {
     if (value) {
       setNewProducts((state) => {
         let new_product = state;
-        new_product[index].productId = value._id;
+        new_product[index].productId = value.id;
 
         return [...new_product];
       });
@@ -109,6 +131,8 @@ export default function ReceiptAdd(props) {
       receiptActions.add({
         ...formData,
         products: newProducts,
+        checkInDate: new Date(),
+        checkOutDate: new Date(),
       })
     );
   };
@@ -136,6 +160,16 @@ export default function ReceiptAdd(props) {
               style={{ width: "100%" }}
               renderInput={(params) => (
                 <TextField {...params} label="Room" variant="outlined" />
+              )}
+            />
+            <Autocomplete
+              id="status-cb"
+              options={statusOption}
+              onChange={(e, value) => handleStatusSelected(value)}
+              getOptionLabel={(option) => option.title}
+              style={{ width: 300 }}
+              renderInput={(params) => (
+                <TextField {...params} label="Status" variant="outlined" />
               )}
             />
 

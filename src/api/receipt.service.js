@@ -34,11 +34,12 @@ async function add(receipt) {
     },
   };
 
+  console.log(receipt);
   const body = JSON.stringify(receipt);
   console.log(body);
 
   return await axios
-    .post("/api/payments", body, requestConfig)
+    .post("/api/payments/", body, requestConfig)
     .then(handleResponse);
 }
 
@@ -70,8 +71,10 @@ async function _delete(id) {
 }
 
 function handleResponse(response) {
-  const data = response.data.data;
-  if (response.status !== 200) {
+  let data;
+  if (response.data.results) data = response.data.results;
+  else data = response.data;
+  if (response.status === 404) {
     // if (response.status === 401) {
     //   // auto logout if 401 response returned from api
     //   //logout();

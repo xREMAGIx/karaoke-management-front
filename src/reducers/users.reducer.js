@@ -23,6 +23,7 @@ export function users(state = initialState, action) {
         isAuthenticated: true,
       };
     case userConstants.LOGIN_FAILURE:
+      localStorage.removeItem("token");
       return { error: action.error };
 
     case userConstants.REGISTER_REQUEST:

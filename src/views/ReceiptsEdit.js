@@ -11,7 +11,7 @@ import Skeleton from "@material-ui/lab/Skeleton";
 
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { receiptActions } from "../actions";
+import { receiptActions, roomActions, productActions } from "../actions";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,26 +52,30 @@ export default function ReceiptEdit(props) {
     room: "",
   });
 
+  const { room } = formData;
+
   const [newProducts, setNewProducts] = React.useState([]);
 
   useEffect(() => {
     //console.log(props.match.params.id);
+    dispatch(roomActions.getAll());
+    dispatch(productActions.getAllNonPagination());
     dispatch(receiptActions.getById(props.match.params.id));
   }, [dispatch, props.match.params.id]);
 
   useEffect(() => {
     setFormData({ ...receipts.item });
+
     //setOnImageChange({ ...formData.image });
-    console.log(receipts.item);
     if (receipts.item !== undefined && receipts.item !== null) {
-      setNewProducts([...receipts.item.products]);
+      if (receipts.item.products) setNewProducts([...receipts.item.products]);
       setLoading((loading) => !loading);
     }
   }, [receipts.item]);
 
   const handleRoomSelected = (value) => {
     if (value) {
-      setFormData({ ...formData, room: value._id });
+      setFormData({ ...formData, room: value.id });
     }
   };
 
@@ -86,20 +90,20 @@ export default function ReceiptEdit(props) {
     if (value) {
       setNewProducts((state) => {
         let new_product = state;
-        new_product[index].productId = value._id;
+        new_product[index].productId = value.id;
 
         return [...new_product];
       });
     }
   };
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
+  // useEffect(() => {
+  //   console.log(formData);
+  // }, [formData]);
 
-  useEffect(() => {
-    console.log(newProducts);
-  }, [newProducts]);
+  // useEffect(() => {
+  //   console.log(newProducts);
+  // }, [newProducts]);
 
   const onDelete = (index) => {
     newProducts.splice(index, 1);
@@ -119,9 +123,8 @@ export default function ReceiptEdit(props) {
   };
 
   const onSubmit = () => {
-    //console.log();
     dispatch(
-      receiptActions.add({
+      receiptActions.update(props.match.params.id, {
         ...formData,
         products: newProducts,
       })
@@ -195,7 +198,11 @@ export default function ReceiptEdit(props) {
                 <Autocomplete
                   id="room-cb"
                   options={rooms.items}
-                  value={formData.room}
+                  value={
+                    rooms.items !== undefined
+                      ? rooms.items.find((element) => element.id === room)
+                      : ""
+                  }
                   getOptionLabel={(options) => options.roomId}
                   onChange={(e, value) => handleRoomSelected(value)}
                   style={{ width: "100%" }}
@@ -216,7 +223,7 @@ export default function ReceiptEdit(props) {
                       color="primary"
                       onClick={addNewProductsClick}
                     >
-                      Add new Product
+                      Edit Product(s)
                     </Button>
                   </Grid>
                 </Grid>
@@ -324,7 +331,7 @@ export default function ReceiptEdit(props) {
                       color="primary"
                       onClick={(e) => onSubmit(e)}
                     >
-                      Add
+                      Update
                     </Button>
                   </Grid>
                   <Grid item>

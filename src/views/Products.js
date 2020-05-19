@@ -11,8 +11,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
-import Button from "@material-ui/core/Button";
-import TablePagination from "@material-ui/core/TablePagination";
+import Pagination from "@material-ui/lab/Pagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -28,6 +27,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import SearchIcon from "@material-ui/icons/Search";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import Skeleton from "@material-ui/lab/Skeleton";
+import TextField from "@material-ui/core/TextField";
 
 import { host } from "../constants";
 import { history } from "../store";
@@ -218,7 +218,6 @@ const useToolbarStyles = makeStyles((theme) => ({
 }));
 
 const EnhancedTableToolbar = (props) => {
-  console.log(props);
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
   //const user = useSelector(state => state.authentication.user);
@@ -358,6 +357,10 @@ export default function Products() {
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
   const [selected, setSelected] = React.useState([]);
+
+  const [pageValue, setPageValue] = React.useState(1);
+  const [pageValueText, setPageValueText] = React.useState(1);
+
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -367,29 +370,12 @@ export default function Products() {
   //const user = useSelector(state => state.authentication.user);
 
   const products = useSelector((state) => state.products);
-  console.log(products);
   const dispatch = useDispatch();
 
-  var pageRows = [];
-  for (let i = 1; i <= products.maxPage; i++) {
-    // note: we add a key prop here to allow react to uniquely identify each
-    // element in this array. see: https://reactjs.org/docs/lists-and-keys.html
-
-    pageRows.push(
-      <Button
-        key={i}
-        onClick={() =>
-          dispatch(productActions.getAll(`/api/products/?page=${i}`))
-        }
-      >
-        {i}
-      </Button>
-    );
-  }
-
-  useEffect(() => {
-    console.log(history.location.state);
-  }, []);
+  const handlePageChange = (event, value) => {
+    dispatch(productActions.getAll(`/api/products/?page=${value}`));
+    setPageValue(value);
+  };
 
   useEffect(() => {
     dispatch(productActions.getAll());
@@ -458,6 +444,17 @@ export default function Products() {
   //   rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   const emptyRows = 0;
+
+  const onChange = (e) => {
+    setPageValueText(parseInt(e.target.value));
+  };
+
+  const keyPressed = (e) => {
+    if (e.key === "Enter")
+      if (pageValueText < products.maxPage + 1 && pageValueText > 0) {
+        handlePageChange(e, pageValueText);
+      }
+  };
 
   return (
     <React.Fragment>
@@ -550,57 +547,11 @@ export default function Products() {
                                   </Typography>
                                 </Grid>
                               </TableCell>
-                              {/* <TableCell scope="row" padding="none">
-                                {categories.items.length !== 0
-                                  ? categories.items.filter((category) => {
-                                      return category._id === row.category;
-                                    })[0].name
-                                  : null}
-                              </TableCell>
-                              <TableCell scope="row" padding="none">
-                                {brands.items.length !== 0
-                                  ? brands.items.filter((brand) => {
-                                      return brand._id === row.brand;
-                                    })[0].name
-                                  : null}
-                              </TableCell> */}
-                              {/* <TableCell padding="none">
-                                {row.images.length > 0 ? (
-                                  <img
-                                    className={classes.img}
-                                    src={
-                                      "http://localhost:5000/uploads/" +
-                                      row.images[0].path
-                                    }
-                                    alt="broken"
-                                  />
-                                ) : null}
-                              </TableCell> */}
+
                               <TableCell align="right">
                                 {row.price.toLocaleString()}
                               </TableCell>
                               <TableCell align="right">{row.stock}</TableCell>
-                              {/* <TableCell align="right">
-                                {row.discount}%
-                              </TableCell>
-                              <TableCell
-                                style={{
-                                  maxWidth: "5vw",
-                                  whiteSpace: "normal",
-                                  wordWrap: "break-word",
-                                }}
-                                scope="row"
-                                // padding="none"
-                              >
-                                <Grid item xs zeroMinWidth>
-                                  <Typography variant="body2" noWrap>
-                                    {row.description}
-                                  </Typography>
-                                </Grid>
-                              </TableCell> */}
-                              {/* <TableCell align="right">
-                                {dateFormat(row.create_at)}
-                              </TableCell> */}
                             </TableRow>
                           );
                         })}
@@ -621,37 +572,32 @@ export default function Products() {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
-              <React.Fragment>
-                {<div>{pageRows}</div>}
-                {products.previous === null ? (
-                  <Button disabled>Previous</Button>
-                ) : (
-                  <Button
-                    onClick={() =>
-                      dispatch(
-                        productActions.getAll(
-                          products.previous.replace(host, "")
-                        )
-                      )
-                    }
-                  >
-                    Previos
-                  </Button>
-                )}
-                {products.next === null ? (
-                  <Button disabled>Next</Button>
-                ) : (
-                  <Button
-                    onClick={() =>
-                      dispatch(
-                        productActions.getAll(products.next.replace(host, ""))
-                      )
-                    }
-                  >
-                    Next
-                  </Button>
-                )}
-              </React.Fragment>
+              <Grid
+                container
+                style={{ marginTop: "10px" }}
+                justify="flex-end"
+                alignItems="center"
+              >
+                <Grid item>
+                  <Pagination
+                    color="primary"
+                    count={products.maxPage}
+                    page={pageValue}
+                    onChange={handlePageChange}
+                  />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    style={{ width: "100px" }}
+                    label="page"
+                    id="outlined-page"
+                    variant="outlined"
+                    type="number"
+                    onChange={(e) => onChange(e)}
+                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  />
+                </Grid>
+              </Grid>
             )}
           </Container>
         </main>

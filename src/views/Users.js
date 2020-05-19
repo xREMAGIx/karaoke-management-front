@@ -11,7 +11,6 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -28,6 +27,8 @@ import Skeleton from "@material-ui/lab/Skeleton";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import { Link } from "react-router-dom";
 import CreateIcon from "@material-ui/icons/Create";
+import Pagination from "@material-ui/lab/Pagination";
+import TextField from "@material-ui/core/TextField";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -355,6 +356,9 @@ export default function Users(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [pageValue, setPageValue] = React.useState(1);
+  const [pageValueText, setPageValueText] = React.useState(1);
+
   const users = useSelector((state) => state.users);
   //const user = useSelector(state => state.authentication.user);
   const dispatch = useDispatch();
@@ -417,6 +421,22 @@ export default function Users(props) {
   //   rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   const emptyRows = 0;
+
+  const onChange = (e) => {
+    setPageValueText(parseInt(e.target.value));
+  };
+
+  const handlePageChange = (event, value) => {
+    dispatch(userActions.getAll(`/api/users/?page=${value}`));
+    setPageValue(value);
+  };
+
+  const keyPressed = (e) => {
+    if (e.key === "Enter")
+      if (pageValueText < users.maxPage + 1 && pageValueText > 0) {
+        handlePageChange(e, pageValueText);
+      }
+  };
 
   return (
     <React.Fragment>
@@ -529,15 +549,32 @@ export default function Users(props) {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={users.items.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-              />
+              <Grid
+                container
+                style={{ marginTop: "10px" }}
+                justify="flex-end"
+                alignItems="center"
+              >
+                <Grid item>
+                  <Pagination
+                    color="primary"
+                    count={users.maxPage}
+                    page={pageValue}
+                    onChange={handlePageChange}
+                  />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    style={{ width: "100px" }}
+                    label="page"
+                    id="outlined-page"
+                    variant="outlined"
+                    type="number"
+                    onChange={(e) => onChange(e)}
+                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  />
+                </Grid>
+              </Grid>
             )}
           </Container>
         </main>

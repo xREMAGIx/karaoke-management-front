@@ -12,7 +12,6 @@ const initialState = {
 };
 
 export function schedules(state = initialState, action) {
-  console.log(action);
   switch (action.type) {
     case scheduleConstants.GETALL_REQUEST:
       return {
