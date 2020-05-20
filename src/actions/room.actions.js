@@ -1,6 +1,6 @@
 import { roomConstants } from "../constants";
 import { roomService } from "../api";
-//import { history } from "../store";
+import { history } from "../store";
 
 export const roomActions = {
   add,
@@ -11,13 +11,12 @@ export const roomActions = {
   delete: _delete,
 };
 
-function getAll() {
+function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
 
-    await roomService.getAll().then(
+    await roomService.getAll(url).then(
       (rooms) => {
-        console.log(rooms);
         dispatch(success(rooms));
       },
       (error) => dispatch(failure(error.toString()))
@@ -81,9 +80,8 @@ function add(room) {
     await roomService.add(room).then(
       (room) => {
         dispatch(success(room));
-        //history.push("/rooms");
+        history.replace({ pathname: "/rooms", state: 201 });
         window.location.reload();
-
         //window.location.reload();
         //dispatch(alertActions.success("Add new post successful"));
       },
@@ -111,8 +109,8 @@ function update(id, room) {
     await roomService.update(id, room).then(
       (id) => {
         dispatch(success(id));
+        history.replace({ pathname: "/rooms", state: 202 });
         window.location.reload();
-        //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {
         dispatch(failure(error.toString()));
@@ -139,6 +137,7 @@ function _delete(id) {
     await roomService.delete(id).then(
       (id) => {
         dispatch(success(id));
+        history.replace({ pathname: "/rooms", state: 203 });
         window.location.reload();
       },
       (error) => dispatch(failure(id, error.toString()))

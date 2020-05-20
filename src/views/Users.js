@@ -3,6 +3,7 @@ import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { userActions } from "../actions";
+import { history } from "../store";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -29,6 +30,9 @@ import { Link } from "react-router-dom";
 import CreateIcon from "@material-ui/icons/Create";
 import Pagination from "@material-ui/lab/Pagination";
 import TextField from "@material-ui/core/TextField";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import Snackbar from "@material-ui/core/Snackbar";
+import Alert from "@material-ui/lab/Alert";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -81,10 +85,16 @@ const headCells = [
     label: "Email",
   },
   {
-    id: "status",
+    id: "salary",
     numeric: false,
     disablePadding: true,
-    label: "Status",
+    label: "Wage",
+  },
+  {
+    id: "monthly_salary",
+    numeric: false,
+    disablePadding: true,
+    label: "Salary",
   },
   {
     id: "createAt",
@@ -290,6 +300,9 @@ const EnhancedTableToolbar = (props) => {
                     input: classes.inputInput,
                   }}
                   inputProps={{ "aria-label": "search" }}
+                  value={props.searchTerm}
+                  onChange={props.searchAction}
+                  onKeyPress={props.keyPressed}
                 />
               </div>
             </Grid>
@@ -348,6 +361,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const sortOption = [
+  { title: "Create Asc", value: "created_at" },
+  { title: "Create Desc", value: "-created_at" },
+  { title: "Username Asc", value: "username" },
+  { title: "Username Desc", value: "-username" },
+  { title: "Wage Asc", value: "salary" },
+  { title: "Wage Desc", value: "-salary" },
+  { title: "Salary Asc", value: "monthly_salary" },
+  { title: "Salary Desc", value: "-monthly_salary" },
+];
+
 export default function Users(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState("asc");
@@ -359,17 +383,28 @@ export default function Users(props) {
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
 
+  const [sortSelected, setSortSelected] = React.useState(1);
+
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const [openAlert1, setOpenAlert1] = React.useState(false);
+  const [openAlert2, setOpenAlert2] = React.useState(false);
+  const [openAlert3, setOpenAlert3] = React.useState(false);
+
   const users = useSelector((state) => state.users);
   //const user = useSelector(state => state.authentication.user);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(userActions.getAll());
+    if (history.location.state === 201) setOpenAlert1(true);
+    if (history.location.state === 202) setOpenAlert2(true);
+    if (history.location.state === 203) setOpenAlert3(true);
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   console.log(JSON.parse(users.items[0].content));
-  // }, [users.items]);
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -406,15 +441,6 @@ export default function Users(props) {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   // const emptyRows =
@@ -422,12 +448,27 @@ export default function Users(props) {
 
   const emptyRows = 0;
 
+  const handleSortSelected = (value) => {
+    if (value) {
+      dispatch(
+        userActions.getAll(
+          `/api/users/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}`
+        )
+      );
+      setSortSelected(sortOption.indexOf(value));
+    }
+  };
+
   const onChange = (e) => {
     setPageValueText(parseInt(e.target.value));
   };
 
   const handlePageChange = (event, value) => {
-    dispatch(userActions.getAll(`/api/users/?page=${value}`));
+    dispatch(
+      userActions.getAll(
+        `/api/users/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+      )
+    );
     setPageValue(value);
   };
 
@@ -438,10 +479,44 @@ export default function Users(props) {
       }
   };
 
+  const keyPressedSearch = (e) => {
+    if (e.key === "Enter")
+      dispatch(
+        userActions.getAll(
+          `api/users?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+        )
+      );
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenAlert1(false);
+    setOpenAlert2(false);
+    setOpenAlert3(false);
+  };
+
   return (
     <React.Fragment>
+      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Add successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Update successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Delete successful!
+        </Alert>
+      </Snackbar>
       <div className={classes.root}>
-        <CustomDrawer onToggleTheme={props.toggleTheme} />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
@@ -451,6 +526,9 @@ export default function Users(props) {
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                searchTerm={searchTerm}
+                searchAction={(e) => handleChange(e)}
+                keyPressed={keyPressedSearch}
               />
             )}
             <TableContainer className={classes.tableContainer}>
@@ -462,6 +540,7 @@ export default function Users(props) {
               >
                 {!users.items ? (
                   <Skeleton
+                    component={"thead"}
                     variant="rect"
                     width={"100%"}
                     height={40}
@@ -480,6 +559,7 @@ export default function Users(props) {
                 )}
                 {!users.items ? (
                   <Skeleton
+                    component={"tbody"}
                     variant="rect"
                     width={"100%"}
                     height={100}
@@ -524,7 +604,10 @@ export default function Users(props) {
                               {row.email}
                             </TableCell>
                             <TableCell scope="row" padding="none">
-                              {row.status}
+                              {row.salary}
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              {row.monthly_salary}
                             </TableCell>
                             <TableCell scope="row" padding="none">
                               {dateFormat(row.created_at)}
@@ -551,27 +634,49 @@ export default function Users(props) {
             ) : (
               <Grid
                 container
-                style={{ marginTop: "10px" }}
-                justify="flex-end"
-                alignItems="center"
+                direction="column"
+                alignItems="flex-end"
+                spacing={2}
               >
-                <Grid item>
-                  <Pagination
-                    color="primary"
-                    count={users.maxPage}
-                    page={pageValue}
-                    onChange={handlePageChange}
-                  />
+                <Grid
+                  item
+                  container
+                  style={{ marginTop: "10px" }}
+                  justify="flex-end"
+                  alignItems="center"
+                >
+                  <Grid item>
+                    <Pagination
+                      color="primary"
+                      count={users.maxPage}
+                      page={pageValue}
+                      onChange={handlePageChange}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      style={{ width: "100px" }}
+                      label="page"
+                      id="outlined-page"
+                      variant="outlined"
+                      type="number"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e, value) => keyPressed(e, value)}
+                    />
+                  </Grid>
                 </Grid>
                 <Grid item>
-                  <TextField
-                    style={{ width: "100px" }}
-                    label="page"
-                    id="outlined-page"
-                    variant="outlined"
-                    type="number"
-                    onChange={(e) => onChange(e)}
-                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  <Autocomplete
+                    id="sort-cb"
+                    className={classes.marginBox}
+                    options={sortOption}
+                    value={sortOption[sortSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleSortSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Sort" variant="outlined" />
+                    )}
                   />
                 </Grid>
               </Grid>

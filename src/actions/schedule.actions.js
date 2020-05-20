@@ -59,11 +59,7 @@ function add(schedule) {
     await scheduleService.add(schedule).then(
       (schedule) => {
         dispatch(success(schedule));
-        history.push("/schedules");
-        //window.location.reload();
-
-        //window.location.reload();
-        //dispatch(alertActions.success("Add new post successful"));
+        history.push({ pathname: "/schedules", state: 201 });
       },
       (error) => {
         dispatch(failure(error.toString()));
@@ -117,6 +113,7 @@ function _delete(id) {
     await scheduleService.delete(id).then(
       (id) => {
         dispatch(success(id));
+        history.replace({ pathname: "/schedules", state: 203 });
         window.location.reload();
       },
       (error) => dispatch(failure(id, error.toString()))

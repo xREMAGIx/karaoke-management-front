@@ -206,10 +206,14 @@ export default function UserEdit(props) {
     }
   }, [users.item]);
 
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.container}>
@@ -297,7 +301,7 @@ export default function UserEdit(props) {
                       variant="outlined"
                       name="salary"
                       type="number"
-                      value={salary || 0}
+                      value={salary}
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />

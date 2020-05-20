@@ -127,7 +127,7 @@ function add(user) {
     userService.add(user).then(
       (user) => {
         dispatch(success(user));
-        history.push({ pathname: "/users", state: 200 });
+        history.push({ pathname: "/users", state: 201 });
         //window.location.reload();
       },
       (error) => {
@@ -154,7 +154,6 @@ function getAll(url) {
     await userService.getAll(url).then(
       (users) => {
         dispatch(success(users));
-        console.log(users);
       },
       (error) => dispatch(failure(error.toString()))
     );
@@ -218,7 +217,7 @@ function update(id, user, image) {
       (id) => {
         dispatch(success(id));
         //window.location.reload();
-        history.push("/users");
+        history.push({ pathname: "/users", state: 202 });
         //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {
@@ -247,6 +246,7 @@ function _delete(id) {
     userService.delete(id).then(
       (id) => {
         dispatch(success(id));
+        history.replace({ pathname: "/users", state: 203 });
         window.location.reload();
       },
       (error) => dispatch(failure(id, error.toString()))

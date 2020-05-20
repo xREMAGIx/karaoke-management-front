@@ -3,6 +3,7 @@ import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { roomActions } from "../actions";
+import { history } from "../store";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -26,6 +27,9 @@ import InputBase from "@material-ui/core/InputBase";
 import DeleteIcon from "@material-ui/icons/Delete";
 import SearchIcon from "@material-ui/icons/Search";
 import Skeleton from "@material-ui/lab/Skeleton";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import Snackbar from "@material-ui/core/Snackbar";
+import Alert from "@material-ui/lab/Alert";
 import RoomAddModal from "./RoomsAdd";
 import RoomEditModal from "./RoomsEdit";
 
@@ -281,6 +285,9 @@ const EnhancedTableToolbar = (props) => {
                     input: classes.inputInput,
                   }}
                   inputProps={{ "aria-label": "search" }}
+                  value={props.searchTerm}
+                  onChange={props.searchAction}
+                  onKeyPress={props.keyPressed}
                 />
               </div>
             </Grid>
@@ -333,12 +340,30 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: 50,
     maxWidth: 100,
   },
-  tableRow: {
+  available: {
     "& .MuiTableCell-root": {
-      padding: 0,
+      padding: 5,
+      color: theme.palette.success.main,
+    },
+  },
+  notAvailable: {
+    "& .MuiTableCell-root": {
+      padding: 5,
+      color: theme.palette.error.main,
     },
   },
 }));
+
+const sortOption = [
+  { title: "Create Asc", value: "created_at" },
+  { title: "Create Desc", value: "-created_at" },
+  { title: "Room ID Asc", value: "roomId" },
+  { title: "Room ID Desc", value: "-roomId" },
+  { title: "Price Asc", value: "price" },
+  { title: "Price Desc", value: "-price" },
+  { title: "Status Asc", value: "status" },
+  { title: "Status Desc", value: "-status" },
+];
 
 export default function Rooms(props) {
   const classes = useStyles();
@@ -351,12 +376,23 @@ export default function Rooms(props) {
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
 
+  const [sortSelected, setSortSelected] = React.useState(1);
+
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const [openAlert1, setOpenAlert1] = React.useState(false);
+  const [openAlert2, setOpenAlert2] = React.useState(false);
+  const [openAlert3, setOpenAlert3] = React.useState(false);
+
   const rooms = useSelector((state) => state.rooms);
   //const room = useSelector(state => state.authentication.room);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(roomActions.getAll());
+    if (history.location.state === 201) setOpenAlert1(true);
+    if (history.location.state === 202) setOpenAlert2(true);
+    if (history.location.state === 203) setOpenAlert3(true);
   }, [dispatch]);
 
   const handleRequestSort = (event, property) => {
@@ -394,15 +430,6 @@ export default function Rooms(props) {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   // const emptyRows =
@@ -410,8 +437,27 @@ export default function Rooms(props) {
 
   const emptyRows = 0;
 
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSortSelected = (value) => {
+    if (value) {
+      dispatch(
+        roomActions.getAll(
+          `/api/rooms/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}`
+        )
+      );
+      setSortSelected(sortOption.indexOf(value));
+    }
+  };
+
   const handlePageChange = (event, value) => {
-    dispatch(roomActions.getAll(`/api/rooms/?page=${value}`));
+    dispatch(
+      roomActions.getAll(
+        `/api/rooms/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+      )
+    );
     setPageValue(value);
   };
 
@@ -426,10 +472,44 @@ export default function Rooms(props) {
       }
   };
 
+  const keyPressedSearch = (e) => {
+    if (e.key === "Enter")
+      dispatch(
+        roomActions.getAll(
+          `api/rooms?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+        )
+      );
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenAlert1(false);
+    setOpenAlert2(false);
+    setOpenAlert3(false);
+  };
+
   return (
     <React.Fragment>
+      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Add successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Update successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Delete successful!
+        </Alert>
+      </Snackbar>
       <div className={classes.root}>
-        <CustomDrawer onToggleTheme={props.toggleTheme} />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
@@ -439,6 +519,9 @@ export default function Rooms(props) {
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                searchTerm={searchTerm}
+                searchAction={(e) => handleChange(e)}
+                keyPressed={keyPressedSearch}
               />
             )}
             <TableContainer className={classes.tableContainer}>
@@ -450,6 +533,7 @@ export default function Rooms(props) {
               >
                 {!rooms.items ? (
                   <Skeleton
+                    component={"thead"}
                     variant="rect"
                     width={"100%"}
                     height={40}
@@ -468,6 +552,7 @@ export default function Rooms(props) {
                 )}
                 {!rooms.items ? (
                   <Skeleton
+                    component={"tbody"}
                     variant="rect"
                     width={"100%"}
                     height={100}
@@ -493,7 +578,11 @@ export default function Rooms(props) {
                             tabIndex={-1}
                             key={row.id}
                             selected={isItemSelected}
-                            className={classes.tableRow}
+                            className={
+                              row.status === "available"
+                                ? classes.available
+                                : classes.notAvailable
+                            }
                           >
                             <TableCell>
                               <Checkbox
@@ -540,27 +629,49 @@ export default function Rooms(props) {
             ) : (
               <Grid
                 container
-                style={{ marginTop: "10px" }}
-                justify="flex-end"
-                alignItems="center"
+                direction="column"
+                alignItems="flex-end"
+                spacing={2}
               >
-                <Grid item>
-                  <Pagination
-                    color="primary"
-                    count={rooms.maxPage}
-                    page={pageValue}
-                    onChange={handlePageChange}
-                  />
+                <Grid
+                  item
+                  container
+                  style={{ marginTop: "10px" }}
+                  justify="flex-end"
+                  alignItems="center"
+                >
+                  <Grid item>
+                    <Pagination
+                      color="primary"
+                      count={rooms.maxPage}
+                      page={pageValue}
+                      onChange={handlePageChange}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      style={{ width: "100px" }}
+                      label="page"
+                      id="outlined-page"
+                      variant="outlined"
+                      type="number"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e, value) => keyPressed(e, value)}
+                    />
+                  </Grid>
                 </Grid>
                 <Grid item>
-                  <TextField
-                    style={{ width: "100px" }}
-                    label="page"
-                    id="outlined-page"
-                    variant="outlined"
-                    type="number"
-                    onChange={(e) => onChange(e)}
-                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  <Autocomplete
+                    id="sort-cb"
+                    className={classes.marginBox}
+                    options={sortOption}
+                    value={sortOption[sortSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleSortSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Sort" variant="outlined" />
+                    )}
                   />
                 </Grid>
               </Grid>

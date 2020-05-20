@@ -57,7 +57,7 @@ function add(receipt) {
     await receiptService.add(receipt).then(
       (receipt) => {
         dispatch(success(receipt));
-        history.push("/receipts");
+        history.push({ pathname: "/receipts", state: 201 });
         //window.location.reload();
 
         //window.location.reload();
@@ -88,7 +88,7 @@ function update(id, receipt) {
     await receiptService.update(id, receipt).then(
       (id) => {
         dispatch(success(id));
-        history.push("/receipts");
+        history.push({ pathname: "/receipts", state: 202 });
         //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {
@@ -116,6 +116,7 @@ function _delete(id) {
     await receiptService.delete(id).then(
       (id) => {
         dispatch(success(id));
+        history.replace({ pathname: "/receipts", state: 203 });
         window.location.reload();
       },
       (error) => dispatch(failure(id, error.toString()))

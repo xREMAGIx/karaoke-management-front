@@ -166,6 +166,7 @@ export default function CustomDrawer(props) {
             style={{ display: "flex", alignItems: "right" }}
             control={
               <Switch
+                checked={props.light}
                 onChange={props.onToggleTheme}
                 inputProps={{ "aria-label": "secondary checkbox" }}
               />

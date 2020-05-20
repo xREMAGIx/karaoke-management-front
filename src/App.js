@@ -61,6 +61,7 @@ const App = () => {
                 exact
                 path="/"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={Dashboard}
               ></AdminRoute>
@@ -68,6 +69,7 @@ const App = () => {
                 exact
                 path="/users"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={Users}
               ></AdminRoute>
@@ -75,6 +77,7 @@ const App = () => {
                 exact
                 path="/users-add"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={UsersAdd}
               ></AdminRoute>
@@ -82,6 +85,7 @@ const App = () => {
                 exact
                 path="/users-edit/:id"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={UsersEdit}
               ></AdminRoute>
@@ -89,6 +93,7 @@ const App = () => {
                 exact
                 path="/schedules"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={Schedules}
               ></AdminRoute>
@@ -96,20 +101,23 @@ const App = () => {
                 exact
                 path="/schedules-add"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={SchedulesAdd}
               ></AdminRoute>
-              <Route
+              <AdminRoute
                 exact
                 path="/rooms"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={Rooms}
-              ></Route>
+              ></AdminRoute>
               <AdminRoute
                 exact
                 path="/products"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={Products}
               ></AdminRoute>
@@ -117,6 +125,7 @@ const App = () => {
                 exact
                 path="/products-add"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={ProductsAdd}
               ></AdminRoute>
@@ -124,6 +133,7 @@ const App = () => {
                 exact
                 path="/products-edit/:id"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={ProductEdit}
               ></AdminRoute>
@@ -131,6 +141,7 @@ const App = () => {
                 exact
                 path="/receipts"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={Receipts}
               ></AdminRoute>
@@ -138,6 +149,7 @@ const App = () => {
                 exact
                 path="/receipts-add"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={ReceiptsAdd}
               ></AdminRoute>
@@ -145,6 +157,7 @@ const App = () => {
                 exact
                 path="/receipts-edit/:id"
                 user={user}
+                light={checked}
                 toggleTheme={toggleChecked}
                 component={ReceiptsEdit}
               ></AdminRoute>

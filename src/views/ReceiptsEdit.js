@@ -160,7 +160,7 @@ export default function ReceiptEdit(props) {
   const onSubmit = () => {
     if (formData.status === "checkedIn")
       dispatch(
-        receiptActions.add({
+        receiptActions.update(props.match.params.id, {
           ...formData,
           products: newProducts,
           checkInDate: selectedCheckIn,
@@ -168,7 +168,7 @@ export default function ReceiptEdit(props) {
       );
     else
       dispatch(
-        receiptActions.add({
+        receiptActions.update(props.match.params.id, {
           ...formData,
           products: newProducts,
           checkInDate: selectedCheckIn,
@@ -184,7 +184,7 @@ export default function ReceiptEdit(props) {
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
 

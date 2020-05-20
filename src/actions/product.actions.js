@@ -79,7 +79,7 @@ function add(product, image) {
     await productService.add(product, image).then(
       (product) => {
         dispatch(success(product));
-        history.push("/products");
+        history.push({ pathname: "/products", state: 201 });
         //window.location.reload();
         //dispatch(alertActions.success("Add new product successful"));
       },
@@ -107,7 +107,7 @@ function update(id, product, image, delImageId) {
     await productService.update(id, product, image, delImageId).then(
       (product) => {
         dispatch(success(id));
-        history.push("/products");
+        history.push({ pathname: "/products", state: 202 });
         //window.location.reload();
         //dispatch(alertActions.success("Add new product successful"));
       },
@@ -136,6 +136,7 @@ function _delete(id) {
     await productService.delete(id).then(
       (id) => {
         dispatch(success(id));
+        history.replace({ pathname: "/products", state: 203 });
         window.location.reload();
       },
       (error) => dispatch(failure(id, error.toString()))

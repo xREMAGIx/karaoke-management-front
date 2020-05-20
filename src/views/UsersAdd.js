@@ -66,7 +66,7 @@ export default function UserAdd(props) {
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
 

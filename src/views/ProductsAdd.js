@@ -10,9 +10,6 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import FormControl from "@material-ui/core/FormControl";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import GridList from "@material-ui/core/GridList";
-import GridListTile from "@material-ui/core/GridListTile";
-import GridListTileBar from "@material-ui/core/GridListTileBar";
 import { Link } from "react-router-dom";
 
 import { useDispatch } from "react-redux";
@@ -47,7 +44,6 @@ const useStyles = makeStyles((theme) => ({
 export default function ProductAdd(props) {
   const classes = useStyles();
 
-  const [image, setImage] = React.useState("");
   //const user = useSelector(state => state.authentication.user);
   const dispatch = useDispatch();
 
@@ -67,30 +63,14 @@ export default function ProductAdd(props) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleOnImageChange = (event) => {
-    if (event.target.files && event.target.files[0]) {
-      let images = [];
-      for (let i = 0; i < event.target.files.length; i++) {
-        images.push({ id: i, img: event.target.files[i] });
-      }
-      setImage(images);
-    }
-  };
-
-  const onDeleteNew = (e) => {
-    let newImg = image.filter((_image) => _image.id !== e.target.id * 1);
-    //console.log(newImg);
-    setImage(newImg);
-  };
-
   const onSubmit = async () => {
-    dispatch(productActions.add(formData, image));
+    dispatch(productActions.add(formData));
   };
 
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
 
@@ -99,134 +79,75 @@ export default function ProductAdd(props) {
               Add new product
             </Typography>
             <Grid container direction="row" spacing={4}>
-              <Grid container item xs={6} spacing={4}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="SKU"
-                    id="outlined-sku"
-                    variant="outlined"
-                    name="sku"
-                    value={sku}
-                    onChange={(e) => onChange(e)}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Product Name"
-                    id="outlined-product-name"
-                    variant="outlined"
-                    name="productName"
-                    value={productName}
-                    onChange={(e) => onChange(e)}
-                  />
-                </Grid>
-                <Grid item xs={12} container spacing={2}>
-                  <Grid item sm={12} md={6}>
-                    <FormControl
-                      fullWidth
-                      className={classes.margin}
-                      variant="outlined"
-                    >
-                      <InputLabel htmlFor="outlined-adornment-price">
-                        Price
-                      </InputLabel>
-                      <OutlinedInput
-                        id="outlined-adornment-price"
-                        name="price"
-                        value={price}
-                        onChange={(e) => onChange(e)}
-                        startAdornment={
-                          <InputAdornment position="start">$</InputAdornment>
-                        }
-                        labelWidth={40}
-                      />
-                    </FormControl>
-                  </Grid>
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Stock"
-                    id="outlined-stock"
-                    variant="outlined"
-                    name="stock"
-                    value={stock}
-                    onChange={(e) => onChange(e)}
-                  />
-                </Grid>
-                <Grid item container spacing={5}>
-                  <Grid item>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={(e) => onSubmit(e)}
-                    >
-                      Add
-                    </Button>
-                  </Grid>
-                  <Grid item>
-                    <Button component={Link} to="/products" variant="contained">
-                      Cancel
-                    </Button>
-                  </Grid>
-                </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="SKU"
+                  id="outlined-sku"
+                  variant="outlined"
+                  name="sku"
+                  value={sku}
+                  onChange={(e) => onChange(e)}
+                />
               </Grid>
-              <Grid
-                container
-                item
-                xs={6}
-                direction="row"
-                alignItems="flex-start"
-                justify="center"
-              >
-                <Grid item>
-                  <div className={classes.uploadRoot}>
-                    <input
-                      accept="image/*"
-                      className={classes.input}
-                      id="contained-button-file"
-                      multiple
-                      type="file"
-                      onChange={handleOnImageChange}
-                    />
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Product Name"
+                  id="outlined-product-name"
+                  variant="outlined"
+                  name="productName"
+                  value={productName}
+                  onChange={(e) => onChange(e)}
+                />
+              </Grid>
 
-                    <label htmlFor="contained-button-file">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        component="span"
-                      >
-                        Upload
-                      </Button>
-                    </label>
-                  </div>
+              <Grid item sm={12}>
+                <FormControl
+                  fullWidth
+                  className={classes.margin}
+                  variant="outlined"
+                >
+                  <InputLabel htmlFor="outlined-adornment-price">
+                    Price
+                  </InputLabel>
+                  <OutlinedInput
+                    id="outlined-adornment-price"
+                    name="price"
+                    value={price}
+                    onChange={(e) => onChange(e)}
+                    startAdornment={
+                      <InputAdornment position="start">$</InputAdornment>
+                    }
+                    labelWidth={40}
+                  />
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Stock"
+                  id="outlined-stock"
+                  variant="outlined"
+                  name="stock"
+                  value={stock}
+                  onChange={(e) => onChange(e)}
+                />
+              </Grid>
+              <Grid item container justify="center" spacing={5}>
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={(e) => onSubmit(e)}
+                  >
+                    Add
+                  </Button>
                 </Grid>
-                <Grid item xs={12}>
-                  <GridList className={classes.gridList}>
-                    {image &&
-                      image.map((item) => (
-                        <GridListTile key={item.id} style={{ width: "100%" }}>
-                          <img
-                            src={URL.createObjectURL(item.img)}
-                            alt={"No data"}
-                          />
-                          <GridListTileBar
-                            title={item.img.name}
-                            actionIcon={
-                              <Button
-                                id={item.id}
-                                style={{ color: "red" }}
-                                onClick={(e) => onDeleteNew(e)}
-                              >
-                                <Typography id={item.id}>Del</Typography>
-                              </Button>
-                            }
-                          />
-                        </GridListTile>
-                      ))}
-                  </GridList>
+                <Grid item>
+                  <Button component={Link} to="/products" variant="contained">
+                    Cancel
+                  </Button>
                 </Grid>
               </Grid>
             </Grid>

@@ -1,4 +1,7 @@
 import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { roomActions, receiptActions } from "../actions";
+
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
@@ -6,7 +9,7 @@ import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import Link from "@material-ui/core/Link";
+import { Link } from "react-router-dom";
 import Chart from "../components/Chart.js";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -18,6 +21,17 @@ import CustomDrawer from "../components/CustomDrawer";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
 import { history } from "../store";
+
+function dateFormat(date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    second: "numeric",
+    minute: "numeric",
+    hour: "numeric",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(date));
+}
 
 function Copyright() {
   return (
@@ -113,6 +127,10 @@ const useStyles = makeStyles((theme) => ({
   },
   seeMore: {
     marginTop: theme.spacing(3),
+    "& a": {
+      color: theme.palette.primary.main,
+      textDecoration: "none",
+    },
   },
   depositContext: {
     flex: 1,
@@ -177,9 +195,19 @@ export default function Dashboard(props) {
 
   const [open, setOpen] = React.useState(false);
 
+  const dispatch = useDispatch();
+
+  const receipts = useSelector((state) => state.receipts);
+  const rooms = useSelector((state) => state.rooms);
+
   useEffect(() => {
     if (history.location.state === 200) setOpen(true);
   }, []);
+
+  useEffect(() => {
+    dispatch(roomActions.getAllNonPagination());
+    dispatch(receiptActions.getAll(`api/payments?ordering=create_at`));
+  }, [dispatch]);
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -189,8 +217,6 @@ export default function Dashboard(props) {
     setOpen(false);
   };
 
-  console.log(props);
-
   return (
     <React.Fragment>
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
@@ -199,7 +225,7 @@ export default function Dashboard(props) {
         </Alert>
       </Snackbar>
       <div className={classes.root}>
-        <CustomDrawer onToggleTheme={props.toggleTheme} />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.container}>
@@ -233,34 +259,47 @@ export default function Dashboard(props) {
               {/* Recent Orders */}
               <Grid item xs={12}>
                 <Paper className={classes.paper}>
-                  <Title>Recent Orders</Title>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Ship To</TableCell>
-                        <TableCell>Payment Method</TableCell>
-                        <TableCell align="right">Sale Amount</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows.map((row) => (
-                        <TableRow key={row.id}>
-                          <TableCell>{row.date}</TableCell>
-                          <TableCell>{row.name}</TableCell>
-                          <TableCell>{row.shipTo}</TableCell>
-                          <TableCell>{row.paymentMethod}</TableCell>
-                          <TableCell align="right">{row.amount}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <div className={classes.seeMore}>
-                    <Link color="primary" href="#" onClick={preventDefault}>
-                      See more orders
-                    </Link>
-                  </div>
+                  {receipts.items ? (
+                    <React.Fragment>
+                      <Title>Recent Receipts</Title>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Room</TableCell>
+                            <TableCell>Check In</TableCell>
+                            <TableCell>Check Out</TableCell>
+                            <TableCell>Total</TableCell>
+                            <TableCell>Create At</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {receipts.items.map((row) => (
+                            <TableRow hover key={row.id}>
+                              <TableCell component="th" scope="row">
+                                {rooms.items
+                                  ? rooms.items.find((x) => x.id === row.room)
+                                      .roomId
+                                  : row.room}
+                              </TableCell>
+                              <TableCell scope="row">
+                                {dateFormat(row.checkInDate)}
+                              </TableCell>
+                              <TableCell scope="row">
+                                {dateFormat(row.checkOutDate)}
+                              </TableCell>
+                              <TableCell scope="row">{row.total}</TableCell>
+                              <TableCell scope="row">
+                                {dateFormat(row.checkOutDate)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      <div className={classes.seeMore}>
+                        <Link to="/receipts">See more receipts</Link>
+                      </div>
+                    </React.Fragment>
+                  ) : null}
                 </Paper>
               </Grid>
             </Grid>

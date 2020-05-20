@@ -10,13 +10,13 @@ export const roomService = {
   delete: _delete,
 };
 
-async function getAll() {
+async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
-  console.log(2);
+  const params = url === null ? `/api/rooms/` : url;
 
-  return await axios.get(`/api/rooms/`, requestConfig).then(handleResponse);
+  return await axios.get(params, requestConfig).then(handleResponse);
 }
 
 async function getAllNonPagination() {
@@ -93,6 +93,5 @@ function handleResponse(response) {
     return Promise.reject(error);
   }
 
-  console.log(data);
   return data;
 }

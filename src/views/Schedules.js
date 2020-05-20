@@ -3,6 +3,7 @@ import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { scheduleActions, userActions } from "../actions";
+import { history } from "../store";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -27,9 +28,10 @@ import Skeleton from "@material-ui/lab/Skeleton";
 import Pagination from "@material-ui/lab/Pagination";
 import TextField from "@material-ui/core/TextField";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import Snackbar from "@material-ui/core/Snackbar";
+import Alert from "@material-ui/lab/Alert";
 import { Link } from "react-router-dom";
-import ScheduleAddModal from "./SchedulesAdd";
-// import ScheduleEditModal from "./SchedulesEdit";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -282,6 +284,9 @@ const EnhancedTableToolbar = (props) => {
                     input: classes.inputInput,
                   }}
                   inputProps={{ "aria-label": "search" }}
+                  value={props.searchTerm}
+                  onChange={props.searchAction}
+                  onKeyPress={props.keyPressed}
                 />
               </div>
             </Grid>
@@ -341,6 +346,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const sortOption = [
+  { title: "Create Asc", value: "created_at" },
+  { title: "Create Desc", value: "-created_at" },
+  { title: "Staff Asc", value: "staff" },
+  { title: "Staff Desc", value: "-staff" },
+  { title: "Day of week Asc", value: "weekDay" },
+  { title: "Day of week Desc", value: "-weekDay" },
+  { title: "Working time Asc", value: "workingTime" },
+  { title: "Working time Desc", value: "-workingTime" },
+];
+
 export default function Schedules(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState("asc");
@@ -349,22 +365,28 @@ export default function Schedules(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [sortSelected, setSortSelected] = React.useState(1);
+
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const [openAlert1, setOpenAlert1] = React.useState(false);
+  const [openAlert2, setOpenAlert2] = React.useState(false);
+  const [openAlert3, setOpenAlert3] = React.useState(false);
+
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
 
   const schedules = useSelector((state) => state.schedules);
   const users = useSelector((state) => state.users);
-  //const schedule = useSelector(state => state.authentication.schedule);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(userActions.getAllNonPagination());
     dispatch(scheduleActions.getAll());
+    if (history.location.state === 201) setOpenAlert1(true);
+    if (history.location.state === 202) setOpenAlert2(true);
+    if (history.location.state === 203) setOpenAlert3(true);
   }, [dispatch]);
-
-  useEffect(() => {
-    console.log(schedules.items);
-  }, [schedules.items]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -401,15 +423,6 @@ export default function Schedules(props) {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   // const emptyRows =
@@ -417,8 +430,27 @@ export default function Schedules(props) {
 
   const emptyRows = 0;
 
+  const handleSortSelected = (value) => {
+    if (value) {
+      dispatch(
+        scheduleActions.getAll(
+          `/api/schedules/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}`
+        )
+      );
+      setSortSelected(sortOption.indexOf(value));
+    }
+  };
+
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
   const handlePageChange = (event, value) => {
-    dispatch(scheduleActions.getAll(`/api/products/?page=${value}`));
+    dispatch(
+      scheduleActions.getAll(
+        `/api/schedules/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+      )
+    );
     setPageValue(value);
   };
 
@@ -433,10 +465,44 @@ export default function Schedules(props) {
       }
   };
 
+  const keyPressedSearch = (e) => {
+    if (e.key === "Enter")
+      dispatch(
+        scheduleActions.getAll(
+          `api/schedules?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+        )
+      );
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenAlert1(false);
+    setOpenAlert2(false);
+    setOpenAlert3(false);
+  };
+
   return (
     <React.Fragment>
+      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Add successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Update successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Delete successful!
+        </Alert>
+      </Snackbar>
       <div className={classes.root}>
-        <CustomDrawer onToggleTheme={props.toggleTheme} />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
@@ -446,6 +512,9 @@ export default function Schedules(props) {
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                searchTerm={searchTerm}
+                searchAction={(e) => handleChange(e)}
+                keyPressed={keyPressedSearch}
               />
             )}
             <TableContainer className={classes.tableContainer}>
@@ -457,6 +526,7 @@ export default function Schedules(props) {
               >
                 {!schedules.items ? (
                   <Skeleton
+                    component={"thead"}
                     variant="rect"
                     width={"100%"}
                     height={40}
@@ -475,6 +545,7 @@ export default function Schedules(props) {
                 )}
                 {!schedules.items || !users.items ? (
                   <Skeleton
+                    component={"tbody"}
                     variant="rect"
                     width={"100%"}
                     height={100}
@@ -550,27 +621,49 @@ export default function Schedules(props) {
             ) : (
               <Grid
                 container
-                style={{ marginTop: "10px" }}
-                justify="flex-end"
-                alignItems="center"
+                direction="column"
+                alignItems="flex-end"
+                spacing={2}
               >
-                <Grid item>
-                  <Pagination
-                    color="primary"
-                    count={schedules.maxPage}
-                    page={pageValue}
-                    onChange={handlePageChange}
-                  />
+                <Grid
+                  item
+                  container
+                  style={{ marginTop: "10px" }}
+                  justify="flex-end"
+                  alignItems="center"
+                >
+                  <Grid item>
+                    <Pagination
+                      color="primary"
+                      count={schedules.maxPage}
+                      page={pageValue}
+                      onChange={handlePageChange}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      style={{ width: "100px" }}
+                      label="page"
+                      id="outlined-page"
+                      variant="outlined"
+                      type="number"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e, value) => keyPressed(e, value)}
+                    />
+                  </Grid>
                 </Grid>
                 <Grid item>
-                  <TextField
-                    style={{ width: "100px" }}
-                    label="page"
-                    id="outlined-page"
-                    variant="outlined"
-                    type="number"
-                    onChange={(e) => onChange(e)}
-                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  <Autocomplete
+                    id="sort-cb"
+                    className={classes.marginBox}
+                    options={sortOption}
+                    value={sortOption[sortSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleSortSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Sort" variant="outlined" />
+                    )}
                   />
                 </Grid>
               </Grid>

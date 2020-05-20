@@ -4,6 +4,8 @@ import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../actions";
 import { Link } from "react-router-dom";
+import { history } from "../store";
+
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import Table from "@material-ui/core/Table";
@@ -29,6 +31,8 @@ import AddCircleIcon from "@material-ui/icons/AddCircle";
 import Skeleton from "@material-ui/lab/Skeleton";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import Snackbar from "@material-ui/core/Snackbar";
+import Alert from "@material-ui/lab/Alert";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -290,8 +294,10 @@ const EnhancedTableToolbar = (props) => {
                     root: classes.inputRoot,
                     input: classes.inputInput,
                   }}
+                  value={props.searchTerm}
                   inputProps={{ "aria-label": "search" }}
                   onChange={props.searchAction}
+                  onKeyPress={props.keyPressed}
                 />
               </div>
             </Grid>
@@ -362,11 +368,13 @@ const sortOption = [
   { title: "SKU Desc", value: "-sku" },
   { title: "Name Asc", value: "productName" },
   { title: "Name Desc", value: "-productName" },
+  { title: "Price Asc", value: "price" },
+  { title: "Price Desc", value: "-price" },
   { title: "Stock Asc", value: "stock" },
   { title: "Stock Desc", value: "-stock" },
 ];
 
-export default function Products() {
+export default function Products(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
@@ -380,47 +388,54 @@ export default function Products() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const [searchResults, setSearchResults] = React.useState([]);
   const [searchTerm, setSearchTerm] = React.useState("");
+
+  const [openAlert1, setOpenAlert1] = React.useState(false);
+  const [openAlert2, setOpenAlert2] = React.useState(false);
+  const [openAlert3, setOpenAlert3] = React.useState(false);
 
   const products = useSelector((state) => state.products);
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(productActions.getAll());
+    if (history.location.state === 201) setOpenAlert1(true);
+    if (history.location.state === 202) setOpenAlert2(true);
+    if (history.location.state === 203) setOpenAlert3(true);
+  }, [dispatch]);
+
   const handlePageChange = (event, value) => {
     dispatch(
       productActions.getAll(
-        `/api/products/?page=${value}&ordering=${sortOption[sortSelected].value}`
+        `/api/products/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
       )
     );
     setPageValue(value);
   };
 
-  useEffect(() => {
-    dispatch(productActions.getAll());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (products.items) {
-      const results = products.items.filter((product) =>
-        product.productName.toLowerCase().includes(searchTerm)
-      );
-      setSearchResults(results);
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
     }
-  }, [searchTerm, products.items]);
+
+    setOpenAlert1(false);
+    setOpenAlert2(false);
+    setOpenAlert3(false);
+  };
 
   const handleSortSelected = (value) => {
     if (value) {
       dispatch(
         productActions.getAll(
-          `/api/products/?page=${pageValue}&ordering=${value.value}`
+          `/api/products/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}`
         )
       );
       setSortSelected(sortOption.indexOf(value));
     }
   };
 
-  const handleChange = (event) => {
-    setSearchTerm(event.target.value);
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const handleRequestSort = (event, property) => {
@@ -431,7 +446,7 @@ export default function Products() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = products.items.map((n) => n._id);
+      const newSelecteds = products.items.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -458,15 +473,6 @@ export default function Products() {
     setSelected(newSelected);
   };
 
-  // const handleChangePage = (event, newPage) => {
-  //   setPage(newPage);
-  // };
-
-  // const handleChangeRowsPerPage = (event) => {
-  //   setRowsPerPage(parseInt(event.target.value, 10));
-  //   setPage(0);
-  // };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   // const emptyRows =
@@ -485,13 +491,36 @@ export default function Products() {
       }
   };
 
+  const keyPressedSearch = (e) => {
+    if (e.key === "Enter")
+      dispatch(
+        productActions.getAll(
+          `api/products?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+        )
+      );
+  };
+
   return (
     <React.Fragment>
+      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Add successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Update successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Delete successful!
+        </Alert>
+      </Snackbar>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
-
           <Container maxWidth="lg" className={classes.mainContainer}>
             {!products.items ? (
               <Skeleton
@@ -504,7 +533,9 @@ export default function Products() {
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
-                searchAction={handleChange}
+                searchTerm={searchTerm}
+                searchAction={(e) => handleChange(e)}
+                keyPressed={keyPressedSearch}
               />
             )}
             <TableContainer className={classes.tableContainer}>
@@ -515,7 +546,12 @@ export default function Products() {
                 aria-label="enhanced table"
               >
                 {!products.items ? (
-                  <Skeleton variant="rect" width={"100%"} height={40} />
+                  <Skeleton
+                    component={"thead"}
+                    variant="rect"
+                    width={"100%"}
+                    height={40}
+                  />
                 ) : (
                   <EnhancedTableHead
                     classes={classes}
@@ -528,11 +564,16 @@ export default function Products() {
                   />
                 )}
                 {!products.items ? (
-                  <Skeleton variant="rect" width={"100%"} height={100} />
+                  <Skeleton
+                    component={"tbody"}
+                    variant="rect"
+                    width={"100%"}
+                    height={100}
+                  />
                 ) : (
                   <TableBody>
                     {Array.isArray(products.items) &&
-                      stableSort(searchResults, getComparator(order, orderBy))
+                      stableSort(products.items, getComparator(order, orderBy))
                         .slice(
                           page * rowsPerPage,
                           page * rowsPerPage + rowsPerPage
@@ -641,7 +682,7 @@ export default function Products() {
                 </Grid>
                 <Grid item>
                   <Autocomplete
-                    id="weekDay-cb"
+                    id="sort-cb"
                     className={classes.marginBox}
                     options={sortOption}
                     value={sortOption[sortSelected]}

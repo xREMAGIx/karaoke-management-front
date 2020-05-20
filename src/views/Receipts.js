@@ -3,6 +3,7 @@ import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { receiptActions, roomActions } from "../actions";
+import { history } from "../store";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -11,7 +12,6 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -30,6 +30,9 @@ import { Link } from "react-router-dom";
 import CreateIcon from "@material-ui/icons/Create";
 import TextField from "@material-ui/core/TextField";
 import Pagination from "@material-ui/lab/Pagination";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import Snackbar from "@material-ui/core/Snackbar";
+import Alert from "@material-ui/lab/Alert";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -93,12 +96,12 @@ const headCells = [
     disablePadding: true,
     label: "Total",
   },
-  // {
-  //   id: "createAt",
-  //   numeric: false,
-  //   disablePadding: true,
-  //   label: "Create At",
-  // },
+  {
+    id: "status",
+    numeric: false,
+    disablePadding: true,
+    label: "Status",
+  },
 ];
 
 function EnhancedTableHead(props) {
@@ -297,6 +300,9 @@ const EnhancedTableToolbar = (props) => {
                     input: classes.inputInput,
                   }}
                   inputProps={{ "aria-label": "search" }}
+                  value={props.searchTerm}
+                  onChange={props.searchAction}
+                  onKeyPress={props.keyPressed}
                 />
               </div>
             </Grid>
@@ -353,7 +359,32 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: 50,
     maxWidth: 100,
   },
+  checkIn: {
+    "& .MuiTableCell-root": {
+      padding: 5,
+      color: "#f5b942",
+    },
+  },
+  checkOut: {
+    "& .MuiTableCell-root": {
+      padding: 5,
+      color: "#259c53",
+    },
+  },
 }));
+
+const sortOption = [
+  { title: "Create Asc", value: "created_at" },
+  { title: "Create Desc", value: "-created_at" },
+  { title: "Room ID Asc", value: "roomId" },
+  { title: "Room ID Desc", value: "-roomId" },
+  { title: "CheckIn Time Asc", value: "checkInDate" },
+  { title: "CheckIn Time Desc", value: "-checkInDate" },
+  { title: "CheckOut Time Asc", value: "checkOutDate" },
+  { title: "CheckOut Time Desc", value: "-checkOutDate" },
+  { title: "Total Asc", value: "total" },
+  { title: "Total Desc", value: "-total" },
+];
 
 export default function Receipts(props) {
   const classes = useStyles();
@@ -366,6 +397,14 @@ export default function Receipts(props) {
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
 
+  const [sortSelected, setSortSelected] = React.useState(1);
+
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const [openAlert1, setOpenAlert1] = React.useState(false);
+  const [openAlert2, setOpenAlert2] = React.useState(false);
+  const [openAlert3, setOpenAlert3] = React.useState(false);
+
   const receipts = useSelector((state) => state.receipts);
   const rooms = useSelector((state) => state.rooms);
   const dispatch = useDispatch();
@@ -373,9 +412,10 @@ export default function Receipts(props) {
   useEffect(() => {
     dispatch(roomActions.getAllNonPagination());
     dispatch(receiptActions.getAll());
+    if (history.location.state === 201) setOpenAlert1(true);
+    if (history.location.state === 202) setOpenAlert2(true);
+    if (history.location.state === 203) setOpenAlert3(true);
   }, [dispatch]);
-
-  console.log(receipts);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -412,15 +452,6 @@ export default function Receipts(props) {
     setSelected(newSelected);
   };
 
-  // const handleChangePage = (event, newPage) => {
-  //   setPage(newPage);
-  // };
-
-  // const handleChangeRowsPerPage = (event) => {
-  //   setRowsPerPage(parseInt(event.target.value, 10));
-  //   setPage(0);
-  // };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   // const emptyRows =
@@ -428,8 +459,27 @@ export default function Receipts(props) {
 
   const emptyRows = 0;
 
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSortSelected = (value) => {
+    if (value) {
+      dispatch(
+        receiptActions.getAll(
+          `/api/payments/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}`
+        )
+      );
+      setSortSelected(sortOption.indexOf(value));
+    }
+  };
+
   const handlePageChange = (event, value) => {
-    dispatch(receiptActions.getAll(`/api/payments/?page=${value}`));
+    dispatch(
+      receiptActions.getAll(
+        `/api/payments/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+      )
+    );
     setPageValue(value);
   };
 
@@ -444,10 +494,44 @@ export default function Receipts(props) {
       }
   };
 
+  const keyPressedSearch = (e) => {
+    if (e.key === "Enter")
+      dispatch(
+        receiptActions.getAll(
+          `api/payments?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+        )
+      );
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenAlert1(false);
+    setOpenAlert2(false);
+    setOpenAlert3(false);
+  };
+
   return (
     <React.Fragment>
+      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Add successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Update successful!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success">
+          Delete successful!
+        </Alert>
+      </Snackbar>
       <div className={classes.root}>
-        <CustomDrawer onToggleTheme={props.toggleTheme} />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
@@ -457,6 +541,9 @@ export default function Receipts(props) {
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                searchTerm={searchTerm}
+                searchAction={(e) => handleChange(e)}
+                keyPressed={keyPressedSearch}
               />
             )}
             <TableContainer className={classes.tableContainer}>
@@ -468,7 +555,7 @@ export default function Receipts(props) {
               >
                 {!receipts.items ? (
                   <Skeleton
-                    component={"div"}
+                    component={"thead"}
                     variant="rect"
                     width={"100%"}
                     height={40}
@@ -487,7 +574,7 @@ export default function Receipts(props) {
                 )}
                 {!receipts.items ? (
                   <Skeleton
-                    component={"div"}
+                    component={"tbody"}
                     variant="rect"
                     width={"100%"}
                     height={100}
@@ -513,6 +600,11 @@ export default function Receipts(props) {
                             tabIndex={-1}
                             key={row.id}
                             selected={isItemSelected}
+                            className={
+                              row.status === "checkedOut"
+                                ? classes.checkOut
+                                : classes.checkIn
+                            }
                           >
                             <TableCell>
                               <Checkbox
@@ -540,9 +632,9 @@ export default function Receipts(props) {
                             <TableCell scope="row" padding="none">
                               {row.total}
                             </TableCell>
-                            {/* <TableCell scope="row" padding="none">
-                              {dateFormat(row.createdAt)}
-                            </TableCell> */}
+                            <TableCell scope="row" padding="none">
+                              {row.status}
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -565,27 +657,49 @@ export default function Receipts(props) {
             ) : (
               <Grid
                 container
-                style={{ marginTop: "10px" }}
-                justify="flex-end"
-                alignItems="center"
+                direction="column"
+                alignItems="flex-end"
+                spacing={2}
               >
-                <Grid item>
-                  <Pagination
-                    color="primary"
-                    count={receipts.maxPage}
-                    page={pageValue}
-                    onChange={handlePageChange}
-                  />
+                <Grid
+                  item
+                  container
+                  style={{ marginTop: "10px" }}
+                  justify="flex-end"
+                  alignItems="center"
+                >
+                  <Grid item>
+                    <Pagination
+                      color="primary"
+                      count={receipts.maxPage}
+                      page={pageValue}
+                      onChange={handlePageChange}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      style={{ width: "100px" }}
+                      label="page"
+                      id="outlined-page"
+                      variant="outlined"
+                      type="number"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e, value) => keyPressed(e, value)}
+                    />
+                  </Grid>
                 </Grid>
                 <Grid item>
-                  <TextField
-                    style={{ width: "100px" }}
-                    label="page"
-                    id="outlined-page"
-                    variant="outlined"
-                    type="number"
-                    onChange={(e) => onChange(e)}
-                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  <Autocomplete
+                    id="sort-cb"
+                    className={classes.marginBox}
+                    options={sortOption}
+                    value={sortOption[sortSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleSortSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Sort" variant="outlined" />
+                    )}
                   />
                 </Grid>
               </Grid>

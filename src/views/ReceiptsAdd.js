@@ -149,7 +149,7 @@ export default function ReceiptAdd(props) {
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
 
@@ -174,7 +174,6 @@ export default function ReceiptAdd(props) {
               options={statusOption}
               onChange={(e, value) => handleStatusSelected(value)}
               getOptionLabel={(option) => option.title}
-              style={{ width: 300 }}
               renderInput={(params) => (
                 <TextField {...params} label="Status" variant="outlined" />
               )}

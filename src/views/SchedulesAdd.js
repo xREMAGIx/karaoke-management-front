@@ -89,10 +89,6 @@ export default function ScheduleAdd(props) {
     }
   };
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
   const onSubmit = () => {
     dispatch(scheduleActions.add(formData));
   };
@@ -100,7 +96,7 @@ export default function ScheduleAdd(props) {
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <CustomDrawer />
+        <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
 
