@@ -6,6 +6,7 @@ export const userService = {
   logout,
   register,
   getAll,
+  getAllNonPagination,
   getById,
   update,
   delete: _delete,
@@ -42,14 +43,20 @@ async function logout() {
   localStorage.removeItem("user");
 }
 
-async function getAll() {
-  const requestOptions = {
-    headers: {
-      "Content-Type": "application/json",
-    },
+async function getAll(url = null) {
+  const requestConfig = {
+    //headers: authHeader()
   };
+  const params = url === null ? `/api/users` : url;
 
-  return await axios.get(`/api/users`, requestOptions).then(handleResponse);
+  return await axios.get(params, requestConfig).then(handleResponse);
+}
+
+async function getAllNonPagination() {
+  const requestConfig = {
+    //headers: authHeader(),
+  };
+  return await axios.get(`/api/allUsers/`, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {
@@ -111,9 +118,9 @@ async function _delete(id) {
 
 function handleResponse(response) {
   let data;
-  if (response.data) data = response.data;
+  data = response.data;
 
-  if (response.status !== 200) {
+  if (response.status === 404) {
     const error = (response && response.message) || response.statusText;
     return Promise.reject(error);
   }

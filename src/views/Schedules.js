@@ -24,9 +24,11 @@ import InputBase from "@material-ui/core/InputBase";
 import DeleteIcon from "@material-ui/icons/Delete";
 import SearchIcon from "@material-ui/icons/Search";
 import Skeleton from "@material-ui/lab/Skeleton";
-import ScheduleAddModal from "./SchedulesAdd";
 import Pagination from "@material-ui/lab/Pagination";
 import TextField from "@material-ui/core/TextField";
+import AddCircleIcon from "@material-ui/icons/AddCircle";
+import { Link } from "react-router-dom";
+import ScheduleAddModal from "./SchedulesAdd";
 // import ScheduleEditModal from "./SchedulesEdit";
 
 function dateFormat(date) {
@@ -284,7 +286,12 @@ const EnhancedTableToolbar = (props) => {
               </div>
             </Grid>
             <Grid item>
-              <ScheduleAddModal />
+              {/* <ScheduleAddModal /> */}
+              <Tooltip title="Add new">
+                <IconButton component={Link} to="/schedules-add">
+                  <AddCircleIcon />
+                </IconButton>
+              </Tooltip>
             </Grid>
           </Grid>
         )}

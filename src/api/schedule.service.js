@@ -35,10 +35,9 @@ async function add(schedule) {
   };
 
   const body = JSON.stringify(schedule);
-  console.log(body);
 
   return await axios
-    .post("/api/schedules", body, requestConfig)
+    .post("/api/schedules/", body, requestConfig)
     .then(handleResponse);
 }
 

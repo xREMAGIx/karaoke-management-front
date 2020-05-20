@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { lighten, makeStyles, fade } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
-import { receiptActions } from "../actions";
+import { receiptActions, roomActions } from "../actions";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -28,6 +28,8 @@ import Skeleton from "@material-ui/lab/Skeleton";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import { Link } from "react-router-dom";
 import CreateIcon from "@material-ui/icons/Create";
+import TextField from "@material-ui/core/TextField";
+import Pagination from "@material-ui/lab/Pagination";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -71,7 +73,7 @@ const headCells = [
     id: "room",
     numeric: false,
     disablePadding: true,
-    label: "Room Id",
+    label: "Room Number",
   },
   {
     id: "checkInDate",
@@ -361,16 +363,19 @@ export default function Receipts(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [pageValue, setPageValue] = React.useState(1);
+  const [pageValueText, setPageValueText] = React.useState(1);
+
   const receipts = useSelector((state) => state.receipts);
+  const rooms = useSelector((state) => state.rooms);
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(roomActions.getAllNonPagination());
     dispatch(receiptActions.getAll());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   console.log(JSON.parse(users.items[0].content));
-  // }, [users.items]);
+  console.log(receipts);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -407,14 +412,14 @@ export default function Receipts(props) {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  // const handleChangePage = (event, newPage) => {
+  //   setPage(newPage);
+  // };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  // const handleChangeRowsPerPage = (event) => {
+  //   setRowsPerPage(parseInt(event.target.value, 10));
+  //   setPage(0);
+  // };
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
@@ -422,6 +427,22 @@ export default function Receipts(props) {
   //   rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   const emptyRows = 0;
+
+  const handlePageChange = (event, value) => {
+    dispatch(receiptActions.getAll(`/api/payments/?page=${value}`));
+    setPageValue(value);
+  };
+
+  const onChange = (e) => {
+    setPageValueText(parseInt(e.target.value));
+  };
+
+  const keyPressed = (e) => {
+    if (e.key === "Enter")
+      if (pageValueText < receipts.maxPage + 1 && pageValueText > 0) {
+        handlePageChange(e, pageValueText);
+      }
+  };
 
   return (
     <React.Fragment>
@@ -447,6 +468,7 @@ export default function Receipts(props) {
               >
                 {!receipts.items ? (
                   <Skeleton
+                    component={"div"}
                     variant="rect"
                     width={"100%"}
                     height={40}
@@ -465,6 +487,7 @@ export default function Receipts(props) {
                 )}
                 {!receipts.items ? (
                   <Skeleton
+                    component={"div"}
                     variant="rect"
                     width={"100%"}
                     height={100}
@@ -503,7 +526,10 @@ export default function Receipts(props) {
                               scope="row"
                               padding="none"
                             >
-                              {row.room}
+                              {rooms.items
+                                ? rooms.items.find((x) => x.id === row.room)
+                                    .roomId
+                                : row.room}
                             </TableCell>
                             <TableCell scope="row" padding="none">
                               {dateFormat(row.checkInDate)}
@@ -537,15 +563,32 @@ export default function Receipts(props) {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={receipts.items.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-              />
+              <Grid
+                container
+                style={{ marginTop: "10px" }}
+                justify="flex-end"
+                alignItems="center"
+              >
+                <Grid item>
+                  <Pagination
+                    color="primary"
+                    count={receipts.maxPage}
+                    page={pageValue}
+                    onChange={handlePageChange}
+                  />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    style={{ width: "100px" }}
+                    label="page"
+                    id="outlined-page"
+                    variant="outlined"
+                    type="number"
+                    onChange={(e) => onChange(e)}
+                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  />
+                </Grid>
+              </Grid>
             )}
           </Container>
         </main>

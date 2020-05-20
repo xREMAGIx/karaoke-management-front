@@ -9,12 +9,13 @@ export const receiptService = {
   delete: _delete,
 };
 
-async function getAll() {
+async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
+  const params = url === null ? `/api/payments/` : url;
 
-  return await axios.get(`/api/payments`, requestConfig).then(handleResponse);
+  return await axios.get(params, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {
@@ -72,8 +73,8 @@ async function _delete(id) {
 
 function handleResponse(response) {
   let data;
-  if (response.data.results) data = response.data.results;
-  else data = response.data;
+  data = response.data;
+
   if (response.status === 404) {
     // if (response.status === 401) {
     //   // auto logout if 401 response returned from api

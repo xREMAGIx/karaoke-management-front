@@ -9,6 +9,8 @@ import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Skeleton from "@material-ui/lab/Skeleton";
 
+import { DateTimePicker } from "@material-ui/pickers";
+
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { receiptActions, roomActions, productActions } from "../actions";
@@ -38,6 +40,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const statusOption = [
+  { title: "Checked In", value: "checkedIn" },
+  { title: "Checked Out", value: "checkedOut" },
+];
+
 export default function ReceiptEdit(props) {
   const classes = useStyles();
 
@@ -50,15 +57,31 @@ export default function ReceiptEdit(props) {
 
   const [formData, setFormData] = useState({
     room: "",
+    status: "",
   });
 
-  const { room } = formData;
+  const { room, status } = formData;
 
   const [newProducts, setNewProducts] = React.useState([]);
 
+  const [selectedCheckIn, handleCheckInChange] = useState(new Date());
+
+  const [selectedCheckOut, handleCheckOutChange] = useState(new Date());
+
+  const statusToIndex = (status) => {
+    switch (status) {
+      case "checkedIn":
+        return 0;
+      case "checkedOut":
+        return 1;
+      default:
+        return 0;
+    }
+  };
+
   useEffect(() => {
     //console.log(props.match.params.id);
-    dispatch(roomActions.getAll());
+    dispatch(roomActions.getAllNonPagination());
     dispatch(productActions.getAllNonPagination());
     dispatch(receiptActions.getById(props.match.params.id));
   }, [dispatch, props.match.params.id]);
@@ -73,9 +96,21 @@ export default function ReceiptEdit(props) {
     }
   }, [receipts.item]);
 
+  useEffect(() => {
+    handleCheckInChange(new Date(formData.checkInDate));
+    // if (formData.status === "checkedOut")
+    //   handleCheckOutChange(new Date(formData.checkOutDate));
+  }, [formData.status, formData.checkInDate, formData.checkOutDate]);
+
   const handleRoomSelected = (value) => {
     if (value) {
       setFormData({ ...formData, room: value.id });
+    }
+  };
+
+  const handleStatusSelected = (value) => {
+    if (value) {
+      setFormData({ ...formData, status: value.value });
     }
   };
 
@@ -97,9 +132,9 @@ export default function ReceiptEdit(props) {
     }
   };
 
-  // useEffect(() => {
-  //   console.log(formData);
-  // }, [formData]);
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   // useEffect(() => {
   //   console.log(newProducts);
@@ -123,12 +158,23 @@ export default function ReceiptEdit(props) {
   };
 
   const onSubmit = () => {
-    dispatch(
-      receiptActions.update(props.match.params.id, {
-        ...formData,
-        products: newProducts,
-      })
-    );
+    if (formData.status === "checkedIn")
+      dispatch(
+        receiptActions.add({
+          ...formData,
+          products: newProducts,
+          checkInDate: selectedCheckIn,
+        })
+      );
+    else
+      dispatch(
+        receiptActions.add({
+          ...formData,
+          products: newProducts,
+          checkInDate: selectedCheckIn,
+          checkOutDate: selectedCheckOut,
+        })
+      );
   };
 
   //   const keyPressed = (e) => {
@@ -210,6 +256,43 @@ export default function ReceiptEdit(props) {
                     <TextField {...params} label="Room" variant="outlined" />
                   )}
                 />
+                <Autocomplete
+                  id="status-cb"
+                  options={statusOption}
+                  value={statusOption[statusToIndex(status)]}
+                  getOptionLabel={(options) => options.title}
+                  onChange={(e, value) => handleStatusSelected(value)}
+                  style={{ width: "100%" }}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Status" variant="outlined" />
+                  )}
+                />
+
+                {formData.status ? (
+                  <React.Fragment>
+                    <DateTimePicker
+                      className={classes.marginBox}
+                      value={selectedCheckIn}
+                      disablePast
+                      ampm={false}
+                      onChange={handleCheckInChange}
+                      label="Check In Time"
+                      showTodayButton
+                      disabled
+                    />
+                    {formData.status === "checkedOut" ? (
+                      <DateTimePicker
+                        className={classes.marginBox}
+                        value={selectedCheckOut}
+                        disablePast
+                        ampm={false}
+                        onChange={handleCheckOutChange}
+                        label="Check Out Time"
+                        showTodayButton
+                      />
+                    ) : null}
+                  </React.Fragment>
+                ) : null}
 
                 <Grid
                   style={{ marginTop: "10px" }}

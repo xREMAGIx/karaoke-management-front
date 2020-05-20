@@ -6,6 +6,10 @@ const initialState = {
   room: null,
   items: [],
   item: [],
+  next: null,
+  previous: null,
+  maxPage: null,
+  currentPage: null,
 };
 
 export function rooms(state = initialState, action) {
@@ -17,7 +21,11 @@ export function rooms(state = initialState, action) {
     case roomConstants.GETALL_SUCCESS:
       return {
         ...state,
-        items: action.rooms,
+        items: action.rooms.results,
+        next: action.rooms.next,
+        previous: action.rooms.previous,
+        maxPage: action.rooms.maxPage,
+        currentPage: action.rooms.currentPage,
       };
     case roomConstants.GETALL_FAILURE:
       return {

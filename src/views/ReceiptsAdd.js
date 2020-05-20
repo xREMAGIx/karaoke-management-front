@@ -8,6 +8,8 @@ import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 
+import { DateTimePicker } from "@material-ui/pickers";
+
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { roomActions, productActions, receiptActions } from "../actions";
@@ -35,6 +37,9 @@ const useStyles = makeStyles((theme) => ({
   gridList: {
     height: "60vh",
   },
+  marginBox: {
+    margin: theme.spacing(2),
+  },
 }));
 
 const statusOption = [
@@ -54,20 +59,12 @@ export default function ReceiptAdd(props) {
 
   const [newProducts, setNewProducts] = React.useState([]);
 
-  const statusToIndex = (status) => {
-    switch (status) {
-      case "checkedIn":
-        return 0;
-      case "checkedOut":
-        return 1;
-      default:
-        return 0;
-    }
-  };
+  const [selectedCheckIn, handleCheckInChange] = useState(new Date());
+  const [selectedCheckOut, handleCheckOutChange] = useState(new Date());
 
   useEffect(() => {
-    dispatch(roomActions.getAll());
-    dispatch(productActions.getAll());
+    dispatch(roomActions.getAllNonPagination());
+    dispatch(productActions.getAllNonPagination());
   }, [dispatch]);
 
   const handleRoomSelected = (value) => {
@@ -126,15 +123,23 @@ export default function ReceiptAdd(props) {
   };
 
   const onSubmit = () => {
-    //console.log();
-    dispatch(
-      receiptActions.add({
-        ...formData,
-        products: newProducts,
-        checkInDate: new Date(),
-        checkOutDate: new Date(),
-      })
-    );
+    if (formData.status === "checkedIn")
+      dispatch(
+        receiptActions.add({
+          ...formData,
+          products: newProducts,
+          checkInDate: selectedCheckIn,
+        })
+      );
+    else
+      dispatch(
+        receiptActions.add({
+          ...formData,
+          products: newProducts,
+          checkInDate: selectedCheckIn,
+          checkOutDate: selectedCheckOut,
+        })
+      );
   };
 
   const keyPressed = (e) => {
@@ -154,6 +159,7 @@ export default function ReceiptAdd(props) {
             </Typography>
             <Autocomplete
               id="room-cb"
+              className={classes.marginBox}
               options={rooms.items}
               getOptionLabel={(options) => options.roomId}
               onChange={(e, value) => handleRoomSelected(value)}
@@ -164,6 +170,7 @@ export default function ReceiptAdd(props) {
             />
             <Autocomplete
               id="status-cb"
+              className={classes.marginBox}
               options={statusOption}
               onChange={(e, value) => handleStatusSelected(value)}
               getOptionLabel={(option) => option.title}
@@ -172,7 +179,30 @@ export default function ReceiptAdd(props) {
                 <TextField {...params} label="Status" variant="outlined" />
               )}
             />
-
+            {formData.status ? (
+              <React.Fragment>
+                <DateTimePicker
+                  className={classes.marginBox}
+                  value={selectedCheckIn}
+                  disablePast
+                  ampm={false}
+                  onChange={handleCheckInChange}
+                  label="Check In Time"
+                  showTodayButton
+                />
+                {formData.status === "checkedOut" ? (
+                  <DateTimePicker
+                    className={classes.marginBox}
+                    value={selectedCheckOut}
+                    disablePast
+                    ampm={false}
+                    onChange={handleCheckOutChange}
+                    label="Check Out Time"
+                    showTodayButton
+                  />
+                ) : null}
+              </React.Fragment>
+            ) : null}
             <Grid
               style={{ marginTop: "10px" }}
               container
@@ -241,30 +271,7 @@ export default function ReceiptAdd(props) {
                       }
                       onKeyPress={(e) => keyPressed(e)}
                     />
-                    {/* <Grid item xs={5}>
-                      <Autocomplete
-                        options={workingTimeOption}
-                        onChange={(e, value) =>
-                          handleWorkingTimeSelected(
-                            value,
-                            newSchedules.indexOf(schedule)
-                          )
-                        }
-                        value={
-                          workingTimeOption[
-                            workingTimeToIndex(schedule.workingTime)
-                          ]
-                        }
-                        getOptionLabel={(option) => option.title}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Working Time"
-                            variant="outlined"
-                          />
-                        )}
-                      />
-                    </Grid> */}
+
                     <Grid item xs={1}>
                       <Button
                         style={{ color: "#b51a02" }}

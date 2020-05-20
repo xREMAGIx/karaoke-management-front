@@ -7,6 +7,7 @@ export const userActions = {
   logout,
   register,
   getAll,
+  getAllNonPagination,
   delete: _delete,
   getMe,
   add,
@@ -146,15 +147,35 @@ function add(user) {
   }
 }
 
-function getAll() {
+function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
 
-    await userService.getAll().then(
+    await userService.getAll(url).then(
       (users) => {
         dispatch(success(users));
         console.log(users);
       },
+      (error) => dispatch(failure(error.toString()))
+    );
+  };
+
+  function request() {
+    return { type: userConstants.GETALL_REQUEST };
+  }
+  function success(users) {
+    return { type: userConstants.GETALL_SUCCESS, users };
+  }
+  function failure(error) {
+    return { type: userConstants.GETALL_FAILURE, error };
+  }
+}
+
+function getAllNonPagination() {
+  return async (dispatch) => {
+    dispatch(request());
+    await userService.getAllNonPagination().then(
+      (users) => dispatch(success(users)),
       (error) => dispatch(failure(error.toString()))
     );
   };

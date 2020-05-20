@@ -6,6 +6,10 @@ const initialState = {
   receipt: null,
   items: [],
   item: null,
+  next: null,
+  previous: null,
+  maxPage: null,
+  currentPage: null,
 };
 
 export function receipts(state = initialState, action) {
@@ -17,7 +21,11 @@ export function receipts(state = initialState, action) {
     case receiptConstants.GETALL_SUCCESS:
       return {
         ...state,
-        items: action.receipts,
+        next: action.receipts.next,
+        previous: action.receipts.previous,
+        items: action.receipts.results,
+        maxPage: action.receipts.maxPage,
+        currentPage: action.receipts.currentPage,
       };
     case receiptConstants.GETALL_FAILURE:
       return {

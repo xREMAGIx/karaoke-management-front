@@ -3,6 +3,7 @@ import axios from "axios";
 
 export const roomService = {
   getAll,
+  getAllNonPagination,
   getById,
   add,
   update,
@@ -16,6 +17,13 @@ async function getAll() {
   console.log(2);
 
   return await axios.get(`/api/rooms/`, requestConfig).then(handleResponse);
+}
+
+async function getAllNonPagination() {
+  const requestConfig = {
+    //headers: authHeader(),
+  };
+  return await axios.get(`/api/allRooms/`, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {
@@ -72,8 +80,8 @@ async function _delete(id) {
 
 function handleResponse(response) {
   let data;
-  if (response.data.results) data = response.data.results;
-  else data = response.data;
+  data = response.data;
+
   if (response.status === 404) {
     // if (response.status === 401) {
     //   // auto logout if 401 response returned from api

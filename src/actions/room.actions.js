@@ -5,6 +5,7 @@ import { roomService } from "../api";
 export const roomActions = {
   add,
   getAll,
+  getAllNonPagination,
   getById,
   update,
   delete: _delete,
@@ -19,6 +20,26 @@ function getAll() {
         console.log(rooms);
         dispatch(success(rooms));
       },
+      (error) => dispatch(failure(error.toString()))
+    );
+  };
+
+  function request() {
+    return { type: roomConstants.GETALL_REQUEST };
+  }
+  function success(rooms) {
+    return { type: roomConstants.GETALL_SUCCESS, rooms };
+  }
+  function failure(error) {
+    return { type: roomConstants.GETALL_FAILURE, error };
+  }
+}
+
+function getAllNonPagination() {
+  return async (dispatch) => {
+    dispatch(request());
+    await roomService.getAllNonPagination().then(
+      (rooms) => dispatch(success(rooms)),
       (error) => dispatch(failure(error.toString()))
     );
   };

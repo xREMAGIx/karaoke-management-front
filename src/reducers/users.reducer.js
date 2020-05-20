@@ -7,6 +7,10 @@ const initialState = {
   user: null,
   items: [],
   item: null,
+  next: null,
+  previous: null,
+  maxPage: null,
+  currentPage: null,
 };
 
 export function users(state = initialState, action) {
@@ -54,6 +58,7 @@ export function users(state = initialState, action) {
         loading: true,
       };
     case userConstants.GETME_SUCCESS:
+      localStorage.getItem("token");
       return {
         ...state,
         loading: false,
@@ -71,6 +76,10 @@ export function users(state = initialState, action) {
       return {
         ...state,
         items: action.users.results,
+        next: action.users.next,
+        previous: action.users.previous,
+        maxPage: action.users.maxPage,
+        currentPage: action.users.currentPage,
       };
     case userConstants.GETALL_FAILURE:
       return {

@@ -29,9 +29,6 @@ import AddCircleIcon from "@material-ui/icons/AddCircle";
 import Skeleton from "@material-ui/lab/Skeleton";
 import TextField from "@material-ui/core/TextField";
 
-import { host } from "../constants";
-import { history } from "../store";
-
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
     second: "numeric",

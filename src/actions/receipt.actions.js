@@ -10,14 +10,11 @@ export const receiptActions = {
   delete: _delete,
 };
 
-function getAll() {
+function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
-
-    await receiptService.getAll().then(
-      (receipts) => {
-        dispatch(success(receipts));
-      },
+    await receiptService.getAll(url).then(
+      (receipts) => dispatch(success(receipts)),
       (error) => dispatch(failure(error.toString()))
     );
   };
