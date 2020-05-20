@@ -28,6 +28,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import Skeleton from "@material-ui/lab/Skeleton";
 import TextField from "@material-ui/core/TextField";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -82,12 +83,12 @@ const headCells = [
   // { id: "img", numeric: false, disablePadding: false, label: "Image" },
   { id: "price", numeric: true, disablePadding: false, label: "Price" },
   { id: "stock", numeric: true, disablePadding: false, label: "Stock" },
-  // {
-  //   id: "create_at",
-  //   numeric: true,
-  //   disablePadding: false,
-  //   label: "Create Date",
-  // },
+  {
+    id: "create_at",
+    numeric: true,
+    disablePadding: false,
+    label: "Create Date",
+  },
 ];
 
 function EnhancedTableHead(props) {
@@ -347,7 +348,23 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: 50,
     maxWidth: 100,
   },
+  outOfStock: {
+    "& .MuiTableCell-body": {
+      color: "#fc2403",
+    },
+  },
 }));
+
+const sortOption = [
+  { title: "Create Asc", value: "created_at" },
+  { title: "Create Desc", value: "-created_at" },
+  { title: "SKU Asc", value: "sku" },
+  { title: "SKU Desc", value: "-sku" },
+  { title: "Name Asc", value: "productName" },
+  { title: "Name Desc", value: "-productName" },
+  { title: "Stock Asc", value: "stock" },
+  { title: "Stock Desc", value: "-stock" },
+];
 
 export default function Products() {
   const classes = useStyles();
@@ -358,19 +375,23 @@ export default function Products() {
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
 
+  const [sortSelected, setSortSelected] = React.useState(1);
+
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [searchResults, setSearchResults] = React.useState([]);
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  //const user = useSelector(state => state.authentication.user);
-
   const products = useSelector((state) => state.products);
   const dispatch = useDispatch();
 
   const handlePageChange = (event, value) => {
-    dispatch(productActions.getAll(`/api/products/?page=${value}`));
+    dispatch(
+      productActions.getAll(
+        `/api/products/?page=${value}&ordering=${sortOption[sortSelected].value}`
+      )
+    );
     setPageValue(value);
   };
 
@@ -386,6 +407,17 @@ export default function Products() {
       setSearchResults(results);
     }
   }, [searchTerm, products.items]);
+
+  const handleSortSelected = (value) => {
+    if (value) {
+      dispatch(
+        productActions.getAll(
+          `/api/products/?page=${pageValue}&ordering=${value.value}`
+        )
+      );
+      setSortSelected(sortOption.indexOf(value));
+    }
+  };
 
   const handleChange = (event) => {
     setSearchTerm(event.target.value);
@@ -426,14 +458,14 @@ export default function Products() {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  // const handleChangePage = (event, newPage) => {
+  //   setPage(newPage);
+  // };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  // const handleChangeRowsPerPage = (event) => {
+  //   setRowsPerPage(parseInt(event.target.value, 10));
+  //   setPage(0);
+  // };
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
@@ -508,7 +540,6 @@ export default function Products() {
                         .map((row, index) => {
                           const isItemSelected = isSelected(row.id);
                           const labelId = `enhanced-table-checkbox-${index}`;
-
                           return (
                             <TableRow
                               hover
@@ -518,6 +549,9 @@ export default function Products() {
                               tabIndex={-1}
                               key={row.sku}
                               selected={isItemSelected}
+                              className={clsx({
+                                [classes.outOfStock]: row.stock <= 0,
+                              })}
                             >
                               <TableCell>
                                 <Checkbox
@@ -549,6 +583,9 @@ export default function Products() {
                                 {row.price.toLocaleString()}
                               </TableCell>
                               <TableCell align="right">{row.stock}</TableCell>
+                              <TableCell align="right">
+                                {dateFormat(row.created_at)}
+                              </TableCell>
                             </TableRow>
                           );
                         })}
@@ -571,27 +608,49 @@ export default function Products() {
             ) : (
               <Grid
                 container
-                style={{ marginTop: "10px" }}
-                justify="flex-end"
-                alignItems="center"
+                direction="column"
+                alignItems="flex-end"
+                spacing={2}
               >
-                <Grid item>
-                  <Pagination
-                    color="primary"
-                    count={products.maxPage}
-                    page={pageValue}
-                    onChange={handlePageChange}
-                  />
+                <Grid
+                  item
+                  container
+                  style={{ marginTop: "10px" }}
+                  justify="flex-end"
+                  alignItems="center"
+                >
+                  <Grid item>
+                    <Pagination
+                      color="primary"
+                      count={products.maxPage}
+                      page={pageValue}
+                      onChange={handlePageChange}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      style={{ width: "100px" }}
+                      label="page"
+                      id="outlined-page"
+                      variant="outlined"
+                      type="number"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e, value) => keyPressed(e, value)}
+                    />
+                  </Grid>
                 </Grid>
                 <Grid item>
-                  <TextField
-                    style={{ width: "100px" }}
-                    label="page"
-                    id="outlined-page"
-                    variant="outlined"
-                    type="number"
-                    onChange={(e) => onChange(e)}
-                    onKeyPress={(e, value) => keyPressed(e, value)}
+                  <Autocomplete
+                    id="weekDay-cb"
+                    className={classes.marginBox}
+                    options={sortOption}
+                    value={sortOption[sortSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleSortSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Sort" variant="outlined" />
+                    )}
                   />
                 </Grid>
               </Grid>

@@ -21,6 +21,10 @@ export function schedules(state = initialState, action) {
       return {
         ...state,
         items: action.schedules.results,
+        next: action.schedules.next,
+        previous: action.schedules.previous,
+        maxPage: action.schedules.maxPage,
+        currentPage: action.schedules.currentPage,
       };
     case scheduleConstants.GETALL_FAILURE:
       return {

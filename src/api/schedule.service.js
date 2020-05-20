@@ -9,12 +9,13 @@ export const scheduleService = {
   delete: _delete,
 };
 
-async function getAll() {
+async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
+  const params = url === null ? `/api/schedules` : url;
 
-  return await axios.get(`/api/schedules/`, requestConfig).then(handleResponse);
+  return await axios.get(params, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {

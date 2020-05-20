@@ -358,17 +358,13 @@ export default function Schedules(props) {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(userActions.getAllNonPagination());
     dispatch(scheduleActions.getAll());
-    dispatch(userActions.getAll());
   }, [dispatch]);
 
   useEffect(() => {
     console.log(schedules.items);
   }, [schedules.items]);
-
-  useEffect(() => {
-    console.log(users.items);
-  }, [users.items]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -477,7 +473,7 @@ export default function Schedules(props) {
                     rowCount={schedules.items.length}
                   />
                 )}
-                {!schedules.items && !users.items ? (
+                {!schedules.items || !users.items ? (
                   <Skeleton
                     variant="rect"
                     width={"100%"}

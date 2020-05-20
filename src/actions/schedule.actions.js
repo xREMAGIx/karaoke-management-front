@@ -1,6 +1,6 @@
 import { scheduleConstants } from "../constants";
 import { scheduleService } from "../api";
-//import { history } from "../store";
+import { history } from "../store";
 
 export const scheduleActions = {
   add,
@@ -10,13 +10,12 @@ export const scheduleActions = {
   delete: _delete,
 };
 
-function getAll() {
+function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
 
-    await scheduleService.getAll().then(
+    await scheduleService.getAll(url).then(
       (schedules) => {
-        console.log(schedules);
         dispatch(success(schedules));
       },
       (error) => dispatch(failure(error.toString()))
@@ -60,8 +59,8 @@ function add(schedule) {
     await scheduleService.add(schedule).then(
       (schedule) => {
         dispatch(success(schedule));
-        //history.push("/schedules");
-        window.location.reload();
+        history.push("/schedules");
+        //window.location.reload();
 
         //window.location.reload();
         //dispatch(alertActions.success("Add new post successful"));

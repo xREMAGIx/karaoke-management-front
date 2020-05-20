@@ -14,6 +14,7 @@ async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
+  console.log(url);
   const params = url === null ? `/api/products` : url;
 
   return await axios.get(params, requestConfig).then(handleResponse);

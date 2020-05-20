@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import Modal from "@material-ui/core/Modal";
-import Backdrop from "@material-ui/core/Backdrop";
-import Fade from "@material-ui/core/Fade";
-import Tooltip from "@material-ui/core/Tooltip";
-import IconButton from "@material-ui/core/IconButton";
-import AddCircleIcon from "@material-ui/icons/AddCircle";
 import { Link } from "react-router-dom";
 import CustomDrawer from "../components/CustomDrawer";
 import Container from "@material-ui/core/Container";
@@ -59,112 +53,50 @@ const workingTimeOption = [
   { title: "Evening", value: "evening" },
 ];
 
-export default function ProductAdd(props) {
+export default function ScheduleAdd(props) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
 
   //   const [image, setImage] = React.useState("");
 
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
 
-  const [newSchedules, setNewSchedules] = React.useState([]);
-
-  const [userOption, setUserOption] = React.useState([]);
+  const [formData, setFormData] = React.useState({
+    weekDay: "",
+    workingTime: "",
+    staff: null,
+  });
 
   useEffect(() => {
     dispatch(userActions.getAllNonPagination());
   }, [dispatch]);
 
+  const handleWeekdaySelected = (value) => {
+    if (value) {
+      setFormData({ ...formData, weekDay: value.value });
+    }
+  };
+
+  const handleWorkingtimeSelected = (value) => {
+    if (value) {
+      setFormData({ ...formData, workingTime: value.value });
+    }
+  };
+
+  const handleUserSelected = (value) => {
+    if (value) {
+      setFormData({ ...formData, staff: value.id });
+    }
+  };
+
   useEffect(() => {
-    if (users.items) setUserOption([...users.items]);
-  }, [users.items]);
+    console.log(formData);
+  }, [formData]);
 
-  const onSubmit = async () => {
-    dispatch(scheduleActions.add(newSchedules));
+  const onSubmit = () => {
+    dispatch(scheduleActions.add(formData));
   };
 
-  // const keyPressed = (e) => {
-  //   if (e.key === "Enter") onSubmit(e);
-  // };
-
-  const addNewSchedulesClick = () => {
-    setNewSchedules((newSchedules) => [
-      ...newSchedules,
-      { weekDay: "monday", workingTime: "morning", staff: "" },
-    ]);
-  };
-
-  const weekDayToIndex = (weekDay) => {
-    switch (weekDay) {
-      case "monday":
-        return 0;
-      case "tuesday":
-        return 1;
-      case "wednesday":
-        return 2;
-      case "thursday":
-        return 3;
-      case "friday":
-        return 4;
-      case "saturday":
-        return 5;
-      case "sunday":
-        return 6;
-      default:
-        return 0;
-    }
-  };
-  const workingTimeToIndex = (workingTime) => {
-    switch (workingTime) {
-      case "morning":
-        return 0;
-      case "afternoon":
-        return 1;
-      case "evening":
-        return 2;
-      default:
-        return 0;
-    }
-  };
-
-  const handleWeekdaysSelected = (value, index) => {
-    if (value) {
-      setNewSchedules((state) => {
-        let new_schedule = state;
-        new_schedule[index].weekDay = value.value;
-
-        return [...new_schedule];
-      });
-    }
-  };
-
-  const handleWorkingTimeSelected = (value, index) => {
-    if (value) {
-      setNewSchedules((state) => {
-        let new_schedule = state;
-        new_schedule[index].workingTime = value.value;
-
-        return [...new_schedule];
-      });
-    }
-  };
-
-  const handleUserSelected = (value, index) => {
-    if (value) {
-      setNewSchedules((state) => {
-        let new_schedule = state;
-        new_schedule[index].staff = value.id;
-
-        return [...new_schedule];
-      });
-    }
-  };
-
-  const onDelete = (index) => {
-    newSchedules.splice(index, 1);
-    setNewSchedules([...newSchedules]);
-  };
   return (
     <React.Fragment>
       <div className={classes.root}>
@@ -174,109 +106,46 @@ export default function ProductAdd(props) {
 
           <Container maxWidth="lg" className={classes.container}>
             <Typography variant="h4" gutterBottom>
-              Add new product
+              Add new Schedule
             </Typography>
-            <Grid
-              style={{ marginTop: "10px" }}
-              container
-              justify="center"
-              spacing={5}
-            >
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={addNewSchedulesClick}
-                >
-                  Add new Schedule
-                </Button>
-              </Grid>
-            </Grid>
 
-            <Grid container>
-              {newSchedules.length > 0 &&
-                newSchedules.map((schedule) => (
-                  <Grid style={{ marginTop: "10px" }} item xs={12} container>
-                    <Grid item xs={3}>
-                      <Autocomplete
-                        options={weekdaysOption}
-                        onChange={(e, value) =>
-                          handleWeekdaysSelected(
-                            value,
-                            newSchedules.indexOf(schedule)
-                          )
-                        }
-                        value={weekdaysOption[weekDayToIndex(schedule.weekDay)]}
-                        getOptionLabel={(option) => option.title}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Weekdays"
-                            variant="outlined"
-                          />
-                        )}
-                      />
-                    </Grid>
+            <Autocomplete
+              id="weekDay-cb"
+              className={classes.marginBox}
+              options={weekdaysOption}
+              getOptionLabel={(options) => options.title}
+              onChange={(e, value) => handleWeekdaySelected(value)}
+              style={{ width: "100%" }}
+              renderInput={(params) => (
+                <TextField {...params} label="Day of week" variant="outlined" />
+              )}
+            />
 
-                    <Grid item xs={3}>
-                      <Autocomplete
-                        options={workingTimeOption}
-                        onChange={(e, value) =>
-                          handleWorkingTimeSelected(
-                            value,
-                            newSchedules.indexOf(schedule)
-                          )
-                        }
-                        value={
-                          workingTimeOption[
-                            workingTimeToIndex(schedule.workingTime)
-                          ]
-                        }
-                        getOptionLabel={(option) => option.title}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Working Time"
-                            variant="outlined"
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={3}>
-                      <Autocomplete
-                        options={userOption}
-                        onChange={(e, value) =>
-                          handleUserSelected(
-                            value,
-                            newSchedules.indexOf(schedule)
-                          )
-                        }
-                        //   value={
-                        //     weekdaysOption[weekDayToIndex(schedule.weekDay)]
-                        //   }
-                        getOptionLabel={(option) => option.username}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="User"
-                            variant="outlined"
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={1}>
-                      <Button
-                        variant="text"
-                        onClick={(e) =>
-                          onDelete(newSchedules.indexOf(schedule))
-                        }
-                      >
-                        DEL
-                      </Button>
-                    </Grid>
-                  </Grid>
-                ))}
-            </Grid>
+            <Autocomplete
+              id="weekDay-cb"
+              className={classes.marginBox}
+              options={workingTimeOption}
+              getOptionLabel={(options) => options.title}
+              onChange={(e, value) => handleWorkingtimeSelected(value)}
+              style={{ width: "100%" }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Working Time"
+                  variant="outlined"
+                />
+              )}
+            />
+
+            <Autocomplete
+              options={users.items}
+              onChange={(e, value) => handleUserSelected(value)}
+              getOptionLabel={(option) => option.username}
+              renderInput={(params) => (
+                <TextField {...params} label="User" variant="outlined" />
+              )}
+            />
+
             <Grid
               style={{ marginTop: "10px" }}
               container
