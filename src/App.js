@@ -29,6 +29,7 @@ import ProductEdit from "./views/ProductsEdit";
 import Receipts from "./views/Receipts";
 import ReceiptsAdd from "./views/ReceiptsAdd";
 import ReceiptsEdit from "./views/ReceiptsEdit";
+import Page404 from "./views/404";
 
 if (localStorage.getItem("token")) {
   setAuthToken(localStorage.getItem("token"));
@@ -161,7 +162,7 @@ const App = () => {
                 toggleTheme={toggleChecked}
                 component={ReceiptsEdit}
               ></AdminRoute>
-              <AdminRoute render={() => <h1>404: page not found</h1>} />
+              <AdminRoute user={user} component={Page404} />
             </Switch>
           </Router>
         </React.Fragment>

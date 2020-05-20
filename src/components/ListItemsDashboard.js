@@ -56,21 +56,3 @@ export const mainListItems = (
     </ListItem>
   </div>
 );
-
-export const secondaryListItems = (
-  <div>
-    <ListSubheader inset>Store page</ListSubheader>
-    {/* <ListItem button component="a" href="/text-editor">
-      <ListItemIcon>
-        <TextFormatIcon />
-      </ListItemIcon>
-      <ListItemText primary="Text Editor" />
-    </ListItem> */}
-    <ListItem button component="a" href="/banner">
-      <ListItemIcon>
-        <PanoramaIcon />
-      </ListItemIcon>
-      <ListItemText primary="Banner" />
-    </ListItem>
-  </div>
-);
