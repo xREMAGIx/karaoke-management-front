@@ -365,18 +365,24 @@ const sortOption = [
   { title: "Status Desc", value: "-status" },
 ];
 
+const filterOption = [
+  { title: "All", value: "" },
+  { title: "Available", value: "available" },
+  { title: "Not Available", value: "notAvailable" },
+];
+
 export default function Rooms(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
   const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
 
   const [sortSelected, setSortSelected] = React.useState(1);
+
+  const [filterSelected, setFilterSelected] = React.useState(0);
 
   const [searchTerm, setSearchTerm] = React.useState("");
 
@@ -445,17 +451,30 @@ export default function Rooms(props) {
     if (value) {
       dispatch(
         roomActions.getAll(
-          `/api/rooms/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}`
+          `/api/rooms/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}&status=${filterOption[filterSelected].value}`
         )
       );
       setSortSelected(sortOption.indexOf(value));
     }
   };
 
+  const handleFilterSelected = (value) => {
+    if (value) {
+      dispatch(
+        roomActions.getAll(
+          `/api/rooms/?page=${1}&ordering=${
+            sortOption[sortSelected].value
+          }&search=${searchTerm}&status=${value.value}`
+        )
+      );
+      setFilterSelected(filterOption.indexOf(value));
+    }
+  };
+
   const handlePageChange = (event, value) => {
     dispatch(
       roomActions.getAll(
-        `/api/rooms/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+        `/api/rooms/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}&status=${filterOption[filterSelected].value}`
       )
     );
     setPageValue(value);
@@ -476,7 +495,9 @@ export default function Rooms(props) {
     if (e.key === "Enter")
       dispatch(
         roomActions.getAll(
-          `api/rooms?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+          `api/rooms?page=${1}&ordering=${
+            sortOption[sortSelected].value
+          }&search=${searchTerm}&status=${filterOption[filterSelected].value}`
         )
       );
   };
@@ -560,12 +581,8 @@ export default function Rooms(props) {
                   />
                 ) : (
                   <TableBody>
-                    {stableSort(rooms.items, getComparator(order, orderBy))
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((row, index) => {
+                    {stableSort(rooms.items, getComparator(order, orderBy)).map(
+                      (row, index) => {
                         const isItemSelected = isSelected(row.id);
                         const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -609,7 +626,8 @@ export default function Rooms(props) {
                             </TableCell>
                           </TableRow>
                         );
-                      })}
+                      }
+                    )}
                     {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />
@@ -671,6 +689,24 @@ export default function Rooms(props) {
                     style={{ width: "300px" }}
                     renderInput={(params) => (
                       <TextField {...params} label="Sort" variant="outlined" />
+                    )}
+                  />
+                </Grid>
+                <Grid item>
+                  <Autocomplete
+                    id="filter-cb"
+                    className={classes.marginBox}
+                    options={filterOption}
+                    value={filterOption[filterSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleFilterSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Filter"
+                        variant="outlined"
+                      />
                     )}
                   />
                 </Grid>

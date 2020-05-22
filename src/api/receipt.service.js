@@ -3,6 +3,7 @@ import axios from "axios";
 
 export const receiptService = {
   getAll,
+  getAllNonPagination,
   getById,
   add,
   update,
@@ -16,6 +17,15 @@ async function getAll(url = null) {
   const params = url === null ? `/api/payments/` : url;
 
   return await axios.get(params, requestConfig).then(handleResponse);
+}
+
+async function getAllNonPagination() {
+  const requestConfig = {
+    //headers: authHeader(),
+  };
+  return await axios
+    .get(`/api/allPayments/`, requestConfig)
+    .then(handleResponse);
 }
 
 async function getById(id) {

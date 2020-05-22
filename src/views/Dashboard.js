@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { roomActions, receiptActions } from "../actions";
+import { roomActions, receiptActions, productActions } from "../actions";
 
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
@@ -31,19 +30,6 @@ function dateFormat(date) {
     month: "2-digit",
     day: "2-digit",
   }).format(new Date(date));
-}
-
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {"Copyright © "}
-      <Link color="inherit" href="https://material-ui.com/">
-        Your Website
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
 }
 
 const drawerWidth = 240;
@@ -137,58 +123,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// Generate Order Data
-function createData(id, date, name, shipTo, paymentMethod, amount) {
-  return { id, date, name, shipTo, paymentMethod, amount };
-}
-
-const rows = [
-  createData(
-    0,
-    "16 Mar, 2019",
-    "Elvis Presley",
-    "Tupelo, MS",
-    "VISA ⠀•••• 3719",
-    312.44
-  ),
-  createData(
-    1,
-    "16 Mar, 2019",
-    "Paul McCartney",
-    "London, UK",
-    "VISA ⠀•••• 2574",
-    866.99
-  ),
-  createData(
-    2,
-    "16 Mar, 2019",
-    "Tom Scholz",
-    "Boston, MA",
-    "MC ⠀•••• 1253",
-    100.81
-  ),
-  createData(
-    3,
-    "16 Mar, 2019",
-    "Michael Jackson",
-    "Gary, IN",
-    "AMEX ⠀•••• 2000",
-    654.39
-  ),
-  createData(
-    4,
-    "15 Mar, 2019",
-    "Bruce Springsteen",
-    "Long Branch, NJ",
-    "VISA ⠀•••• 5919",
-    212.79
-  ),
-];
-
-function preventDefault(event) {
-  event.preventDefault();
-}
-
 export default function Dashboard(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
@@ -199,6 +133,7 @@ export default function Dashboard(props) {
 
   const receipts = useSelector((state) => state.receipts);
   const rooms = useSelector((state) => state.rooms);
+  const products = useSelector((state) => state.products);
 
   useEffect(() => {
     if (history.location.state === 200) setOpen(true);
@@ -206,7 +141,8 @@ export default function Dashboard(props) {
 
   useEffect(() => {
     dispatch(roomActions.getAllNonPagination());
-    dispatch(receiptActions.getAll(`api/payments?ordering=create_at`));
+    dispatch(productActions.getAllNonPagination());
+    dispatch(receiptActions.getAllNonPagination());
   }, [dispatch]);
 
   const handleClose = (event, reason) => {
@@ -238,23 +174,24 @@ export default function Dashboard(props) {
               </Grid>
               {/* Recent Deposits */}
               <Grid item xs={12} md={4} lg={3}>
-                <Paper className={fixedHeightPaper}>
-                  <Title>Recent Deposits</Title>
-                  <Typography component="p" variant="h4">
-                    $3,024.00
-                  </Typography>
-                  <Typography
-                    color="textSecondary"
-                    className={classes.depositContext}
-                  >
-                    on 15 March, 2019
-                  </Typography>
-                  <div>
-                    <Link color="primary" href="#" onClick={preventDefault}>
-                      View balance
-                    </Link>
-                  </div>
-                </Paper>
+                {rooms.items && products.items ? (
+                  <Paper className={fixedHeightPaper}>
+                    <Title>Statictis</Title>
+                    <Typography component="p" variant="h6">
+                      Number of rooms: {rooms.items.length}
+                    </Typography>
+                    <Typography component="p" variant="h6" gutterBottom>
+                      Number of products: {products.items.length}
+                    </Typography>
+                    <Typography
+                      color="textSecondary"
+                      className={classes.depositContext}
+                    >
+                      on {new Date().getDate()}/{new Date().getMonth()}/
+                      {new Date().getFullYear()}
+                    </Typography>
+                  </Paper>
+                ) : null}
               </Grid>
               {/* Recent Orders */}
               <Grid item xs={12}>
@@ -273,7 +210,7 @@ export default function Dashboard(props) {
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {receipts.items.map((row) => (
+                          {receipts.items.slice(0, 5).map((row) => (
                             <TableRow hover key={row.id}>
                               <TableCell component="th" scope="row">
                                 {rooms.items
@@ -303,9 +240,6 @@ export default function Dashboard(props) {
                 </Paper>
               </Grid>
             </Grid>
-            <Box pt={4}>
-              <Copyright />
-            </Box>
           </Container>
         </main>
       </div>

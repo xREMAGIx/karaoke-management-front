@@ -377,8 +377,6 @@ export default function Users(props) {
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
   const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
@@ -483,7 +481,9 @@ export default function Users(props) {
     if (e.key === "Enter")
       dispatch(
         userActions.getAll(
-          `api/users?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+          `api/users?page=${1}&ordering=${
+            sortOption[sortSelected].value
+          }&search=${searchTerm}`
         )
       );
   };
@@ -567,12 +567,8 @@ export default function Users(props) {
                   />
                 ) : (
                   <TableBody>
-                    {stableSort(users.items, getComparator(order, orderBy))
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((row, index) => {
+                    {stableSort(users.items, getComparator(order, orderBy)).map(
+                      (row, index) => {
                         const isItemSelected = isSelected(row.id);
                         const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -614,7 +610,8 @@ export default function Users(props) {
                             </TableCell>
                           </TableRow>
                         );
-                      })}
+                      }
+                    )}
                     {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />

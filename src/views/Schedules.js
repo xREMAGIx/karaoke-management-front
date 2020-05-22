@@ -33,17 +33,6 @@ import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
 import { Link } from "react-router-dom";
 
-function dateFormat(date) {
-  return new Intl.DateTimeFormat("en-GB", {
-    second: "numeric",
-    minute: "numeric",
-    hour: "numeric",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(date));
-}
-
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -362,8 +351,6 @@ export default function Schedules(props) {
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
   const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [sortSelected, setSortSelected] = React.useState(1);
 
@@ -469,7 +456,9 @@ export default function Schedules(props) {
     if (e.key === "Enter")
       dispatch(
         scheduleActions.getAll(
-          `api/schedules?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+          `api/schedules?page=${1}&ordering=${
+            sortOption[sortSelected].value
+          }&search=${searchTerm}`
         )
       );
   };
@@ -553,55 +542,49 @@ export default function Schedules(props) {
                   />
                 ) : (
                   <TableBody>
-                    {stableSort(schedules.items, getComparator(order, orderBy))
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((row, index) => {
-                        const isItemSelected = isSelected(row.id);
-                        const labelId = `enhanced-table-checkbox-${index}`;
+                    {stableSort(
+                      schedules.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
+                      const isItemSelected = isSelected(row.id);
+                      const labelId = `enhanced-table-checkbox-${index}`;
 
-                        return (
-                          <TableRow
-                            hover
-                            onClick={(event) => handleClick(event, row.id)}
-                            role="checkbox"
-                            aria-checked={isItemSelected}
-                            tabIndex={-1}
-                            key={row.id}
-                            selected={isItemSelected}
+                      return (
+                        <TableRow
+                          hover
+                          onClick={(event) => handleClick(event, row.id)}
+                          role="checkbox"
+                          aria-checked={isItemSelected}
+                          tabIndex={-1}
+                          key={row.id}
+                          selected={isItemSelected}
+                        >
+                          <TableCell>
+                            <Checkbox
+                              checked={isItemSelected}
+                              inputProps={{ "aria-labelledby": labelId }}
+                            />
+                          </TableCell>
+                          <TableCell
+                            component="th"
+                            id={labelId}
+                            scope="row"
+                            padding="none"
                           >
-                            <TableCell>
-                              <Checkbox
-                                checked={isItemSelected}
-                                inputProps={{ "aria-labelledby": labelId }}
-                              />
-                            </TableCell>
-                            <TableCell
-                              component="th"
-                              id={labelId}
-                              scope="row"
-                              padding="none"
-                            >
-                              {users.items
-                                ? users.items.find((x) => x.id === row.staff)
-                                    .username
-                                : row.staff}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.weekDay}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.workingTime}
-                            </TableCell>
-
-                            {/* <TableCell scope="row" padding="none">
-                              {dateFormat(row.created_at)}
-                            </TableCell> */}
-                          </TableRow>
-                        );
-                      })}
+                            {users.items
+                              ? users.items.find((x) => x.id === row.staff)
+                                  .username
+                              : row.staff}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {row.weekDay}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {row.workingTime}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                     {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />

@@ -385,9 +385,6 @@ export default function Products(props) {
 
   const [sortSelected, setSortSelected] = React.useState(1);
 
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const [openAlert1, setOpenAlert1] = React.useState(false);
@@ -495,7 +492,9 @@ export default function Products(props) {
     if (e.key === "Enter")
       dispatch(
         productActions.getAll(
-          `api/products?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+          `api/products?page=${1}&ordering=${
+            sortOption[sortSelected].value
+          }&search=${searchTerm}`
         )
       );
   };
@@ -573,63 +572,61 @@ export default function Products(props) {
                 ) : (
                   <TableBody>
                     {Array.isArray(products.items) &&
-                      stableSort(products.items, getComparator(order, orderBy))
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((row, index) => {
-                          const isItemSelected = isSelected(row.id);
-                          const labelId = `enhanced-table-checkbox-${index}`;
-                          return (
-                            <TableRow
-                              hover
-                              onClick={(event) => handleClick(event, row.id)}
-                              role="checkbox"
-                              aria-checked={isItemSelected}
-                              tabIndex={-1}
-                              key={row.sku}
-                              selected={isItemSelected}
-                              className={clsx({
-                                [classes.outOfStock]: row.stock <= 0,
-                              })}
+                      stableSort(
+                        products.items,
+                        getComparator(order, orderBy)
+                      ).map((row, index) => {
+                        const isItemSelected = isSelected(row.id);
+                        const labelId = `enhanced-table-checkbox-${index}`;
+                        return (
+                          <TableRow
+                            hover
+                            onClick={(event) => handleClick(event, row.id)}
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            tabIndex={-1}
+                            key={row.sku}
+                            selected={isItemSelected}
+                            className={clsx({
+                              [classes.outOfStock]: row.stock <= 0,
+                            })}
+                          >
+                            <TableCell>
+                              <Checkbox
+                                checked={isItemSelected}
+                                inputProps={{ "aria-labelledby": labelId }}
+                              />
+                            </TableCell>
+                            <TableCell
+                              component="th"
+                              id={labelId}
+                              scope="row"
+                              padding="none"
                             >
-                              <TableCell>
-                                <Checkbox
-                                  checked={isItemSelected}
-                                  inputProps={{ "aria-labelledby": labelId }}
-                                />
-                              </TableCell>
-                              <TableCell
-                                component="th"
-                                id={labelId}
-                                scope="row"
-                                padding="none"
-                              >
-                                <Grid item xs zeroMinWidth>
-                                  <Typography variant="body2" noWrap>
-                                    {row.sku}
-                                  </Typography>
-                                </Grid>
-                              </TableCell>
-                              <TableCell scope="row" padding="none">
-                                <Grid item xs zeroMinWidth>
-                                  <Typography variant="body2" noWrap>
-                                    {row.productName}
-                                  </Typography>
-                                </Grid>
-                              </TableCell>
+                              <Grid item xs zeroMinWidth>
+                                <Typography variant="body2" noWrap>
+                                  {row.sku}
+                                </Typography>
+                              </Grid>
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              <Grid item xs zeroMinWidth>
+                                <Typography variant="body2" noWrap>
+                                  {row.productName}
+                                </Typography>
+                              </Grid>
+                            </TableCell>
 
-                              <TableCell align="right">
-                                {row.price.toLocaleString()}
-                              </TableCell>
-                              <TableCell align="right">{row.stock}</TableCell>
-                              <TableCell align="right">
-                                {dateFormat(row.created_at)}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
+                            <TableCell align="right">
+                              {row.price.toLocaleString()}
+                            </TableCell>
+                            <TableCell align="right">{row.stock}</TableCell>
+                            <TableCell align="right">
+                              {dateFormat(row.created_at)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />

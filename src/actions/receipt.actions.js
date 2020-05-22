@@ -5,6 +5,7 @@ import { history } from "../store";
 export const receiptActions = {
   add,
   getAll,
+  getAllNonPagination,
   getById,
   update,
   delete: _delete,
@@ -15,6 +16,26 @@ function getAll(url) {
     dispatch(request());
     await receiptService.getAll(url).then(
       (receipts) => dispatch(success(receipts)),
+      (error) => dispatch(failure(error.toString()))
+    );
+  };
+
+  function request() {
+    return { type: receiptConstants.GETALL_REQUEST };
+  }
+  function success(receipts) {
+    return { type: receiptConstants.GETALL_SUCCESS, receipts };
+  }
+  function failure(error) {
+    return { type: receiptConstants.GETALL_FAILURE, error };
+  }
+}
+
+function getAllNonPagination() {
+  return async (dispatch) => {
+    dispatch(request());
+    await receiptService.getAllNonPagination().then(
+      (rooms) => dispatch(success(rooms)),
       (error) => dispatch(failure(error.toString()))
     );
   };

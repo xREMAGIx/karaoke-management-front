@@ -386,18 +386,23 @@ const sortOption = [
   { title: "Total Desc", value: "-total" },
 ];
 
+const filterOption = [
+  { title: "All", value: "" },
+  { title: "Checked In", value: "checkedIn" },
+  { title: "Checked Out", value: "checkedOut" },
+];
+
 export default function Receipts(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("");
   const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
 
   const [sortSelected, setSortSelected] = React.useState(1);
+  const [filterSelected, setFilterSelected] = React.useState(0);
 
   const [searchTerm, setSearchTerm] = React.useState("");
 
@@ -411,7 +416,7 @@ export default function Receipts(props) {
 
   useEffect(() => {
     dispatch(roomActions.getAllNonPagination());
-    dispatch(receiptActions.getAll());
+    dispatch(receiptActions.getAll(`api/payments?ordering=-created_at`));
     if (history.location.state === 201) setOpenAlert1(true);
     if (history.location.state === 202) setOpenAlert2(true);
     if (history.location.state === 203) setOpenAlert3(true);
@@ -454,9 +459,6 @@ export default function Receipts(props) {
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  // const emptyRows =
-  //   rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
   const emptyRows = 0;
 
   const handleChange = (e) => {
@@ -467,17 +469,30 @@ export default function Receipts(props) {
     if (value) {
       dispatch(
         receiptActions.getAll(
-          `/api/payments/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}`
+          `/api/payments/?page=${pageValue}&ordering=${value.value}&search=${searchTerm}&status=${filterOption[filterSelected].value}`
         )
       );
       setSortSelected(sortOption.indexOf(value));
     }
   };
 
+  const handleFilterSelected = (value) => {
+    if (value) {
+      dispatch(
+        receiptActions.getAll(
+          `/api/payments/?page=${1}&ordering=${
+            sortOption[sortSelected].value
+          }&search=${searchTerm}&status=${value.value}`
+        )
+      );
+      setFilterSelected(filterOption.indexOf(value));
+    }
+  };
+
   const handlePageChange = (event, value) => {
     dispatch(
       receiptActions.getAll(
-        `/api/payments/?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+        `/api/payments?page=${value}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}&status=${filterOption[filterSelected].value}`
       )
     );
     setPageValue(value);
@@ -498,7 +513,9 @@ export default function Receipts(props) {
     if (e.key === "Enter")
       dispatch(
         receiptActions.getAll(
-          `api/payments?page=${pageValue}&ordering=${sortOption[sortSelected].value}&search=${searchTerm}`
+          `api/payments?page=${1}&ordering=${
+            sortOption[sortSelected].value
+          }&search=${searchTerm}&status=${filterOption[filterSelected].value}`
         )
       );
   };
@@ -582,62 +599,61 @@ export default function Receipts(props) {
                   />
                 ) : (
                   <TableBody>
-                    {stableSort(receipts.items, getComparator(order, orderBy))
-                      .slice(
-                        page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
-                      )
-                      .map((row, index) => {
-                        const isItemSelected = isSelected(row.id);
-                        const labelId = `enhanced-table-checkbox-${index}`;
-
-                        return (
-                          <TableRow
-                            hover
-                            onClick={(event) => handleClick(event, row.id)}
-                            role="checkbox"
-                            aria-checked={isItemSelected}
-                            tabIndex={-1}
-                            key={row.id}
-                            selected={isItemSelected}
-                            className={
-                              row.status === "checkedOut"
-                                ? classes.checkOut
-                                : classes.checkIn
-                            }
+                    {stableSort(
+                      receipts.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
+                      const isItemSelected = isSelected(row.id);
+                      const labelId = `enhanced-table-checkbox-${index}`;
+                      return (
+                        <TableRow
+                          hover
+                          onClick={(event) => handleClick(event, row.id)}
+                          role="checkbox"
+                          aria-checked={isItemSelected}
+                          tabIndex={-1}
+                          key={row.id}
+                          selected={isItemSelected}
+                          className={
+                            row.status === "checkedOut"
+                              ? classes.checkOut
+                              : classes.checkIn
+                          }
+                        >
+                          <TableCell>
+                            <Checkbox
+                              checked={isItemSelected}
+                              inputProps={{ "aria-labelledby": labelId }}
+                            />
+                          </TableCell>
+                          <TableCell
+                            component="th"
+                            id={labelId}
+                            scope="row"
+                            padding="none"
                           >
-                            <TableCell>
-                              <Checkbox
-                                checked={isItemSelected}
-                                inputProps={{ "aria-labelledby": labelId }}
-                              />
-                            </TableCell>
-                            <TableCell
-                              component="th"
-                              id={labelId}
-                              scope="row"
-                              padding="none"
-                            >
-                              {rooms.items
+                            {rooms.items
+                              ? rooms.items.find((x) => x.id === row.room)
                                 ? rooms.items.find((x) => x.id === row.room)
                                     .roomId
-                                : row.room}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {dateFormat(row.checkInDate)}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {dateFormat(row.checkOutDate)}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.total}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.status}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                                : row.room
+                              : row.room}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {dateFormat(row.checkInDate)}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {dateFormat(row.checkOutDate)}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {row.total}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {row.status}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                     {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />
@@ -699,6 +715,24 @@ export default function Receipts(props) {
                     style={{ width: "300px" }}
                     renderInput={(params) => (
                       <TextField {...params} label="Sort" variant="outlined" />
+                    )}
+                  />
+                </Grid>
+                <Grid item>
+                  <Autocomplete
+                    id="filter-cb"
+                    className={classes.marginBox}
+                    options={filterOption}
+                    value={filterOption[filterSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleFilterSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Filter"
+                        variant="outlined"
+                      />
                     )}
                   />
                 </Grid>

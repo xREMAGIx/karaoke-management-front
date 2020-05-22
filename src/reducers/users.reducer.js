@@ -53,6 +53,7 @@ export function users(state = initialState, action) {
       };
 
     case userConstants.GETME_REQUEST:
+      localStorage.getItem("token");
       return {
         ...state,
         loading: true,

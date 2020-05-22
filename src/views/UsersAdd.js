@@ -49,7 +49,7 @@ export default function UserAdd(props) {
     //salary: 0,
   });
 
-  const { username, email, password, salary } = formData;
+  const { username, email, password } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -89,7 +89,7 @@ export default function UserAdd(props) {
               fullWidth
               style={{ marginTop: "10px" }}
               label="User email"
-              id="outlined-name"
+              id="outlined-email"
               variant="outlined"
               name="email"
               value={email}
@@ -100,7 +100,7 @@ export default function UserAdd(props) {
               fullWidth
               style={{ marginTop: "10px" }}
               label="Password"
-              id="outlined-name"
+              id="outlined-password"
               variant="outlined"
               type="password"
               name="password"

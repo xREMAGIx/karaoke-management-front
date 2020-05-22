@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "@material-ui/core/styles";
 import {
   LineChart,
@@ -6,8 +6,9 @@ import {
   XAxis,
   YAxis,
   Label,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
+import { useSelector } from "react-redux";
 import Title from "./Title";
 
 // Generate Sales Data
@@ -15,32 +16,70 @@ function createData(time, amount) {
   return { time, amount };
 }
 
-const data = [
-  createData("00:00", 0),
-  createData("03:00", 300),
-  createData("06:00", 600),
-  createData("09:00", 800),
-  createData("12:00", 1500),
-  createData("15:00", 2000),
-  createData("18:00", 2400),
-  createData("21:00", 2400),
-  createData("24:00", undefined)
-];
-
 export default function Chart() {
   const theme = useTheme();
+
+  const [TotalReceipts, setTotalReceipts] = useState([]);
+
+  // const dispatch = useDispatch();
+
+  // useEffect(() => {
+  //   dispatch(receiptActions.getAllNonPagination());
+  // }, [dispatch]);
+
+  const receipts = useSelector((state) => state.receipts);
+  // let recentItems = [];
+  // if (receipts.items)
+  //   recentItems = receipts.items.filter(
+  //     (x) => new Date(x.checkOutDate).getDate() > new Date().getDate() - 7
+  //   );
+
+  useEffect(() => {
+    let weekReceipts = [];
+    let totalReceipts = [];
+    if (receipts.items) {
+      for (let i = 0; i < 7; i++) {
+        weekReceipts.push([]);
+        totalReceipts.push([]);
+        weekReceipts[weekReceipts.length - 1] = receipts.items.filter(
+          (x) => new Date(x.checkOutDate).getDate() === new Date().getDate() - i
+        );
+        let checkOutDate = (new Date().getDate() - i).toString();
+        let total = 0;
+
+        for (let i = 0; i < weekReceipts[weekReceipts.length - 1].length; i++) {
+          total += weekReceipts[weekReceipts.length - 1][i].total;
+        }
+
+        totalReceipts[totalReceipts.length - 1] = createData(
+          checkOutDate,
+          Math.round(total)
+        );
+      }
+      setTotalReceipts(totalReceipts.reverse());
+    }
+  }, [receipts.items]);
+
+  // if (receipts.items) {
+  //   for (let i = 0; i < 7; i++) {
+  //     weekReceipts.push([]);
+  //     weekReceipts[weekReceipts.length - 1] = receipts.items.filter(
+  //       (x) => new Date(x.checkOutDate).getDate() > new Date().getDate() - i
+  //     );
+  //   }
+  // }
 
   return (
     <React.Fragment>
       <Title>Today</Title>
       <ResponsiveContainer>
         <LineChart
-          data={data}
+          data={TotalReceipts}
           margin={{
             top: 16,
             right: 16,
             bottom: 0,
-            left: 24
+            left: 24,
           }}
         >
           <XAxis dataKey="time" stroke={theme.palette.text.secondary} />
@@ -50,14 +89,14 @@ export default function Chart() {
               position="left"
               style={{ textAnchor: "middle", fill: theme.palette.text.primary }}
             >
-              Sales ($)
+              Total of receipts ($)
             </Label>
           </YAxis>
           <Line
             type="monotone"
             dataKey="amount"
             stroke={theme.palette.primary.main}
-            dot={false}
+            dot={true}
           />
         </LineChart>
       </ResponsiveContainer>
