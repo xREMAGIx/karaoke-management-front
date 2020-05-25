@@ -1,4 +1,5 @@
-import { userConstants } from "../constants";
+import { userConstants } from "../constants"
+import setAuthToken from "../store/setAuthToken"
 
 const initialState = {
   token: localStorage.getItem("token"),
@@ -11,6 +12,7 @@ const initialState = {
   previous: null,
   maxPage: null,
   currentPage: null,
+  error: null,
 };
 
 export function users(state = initialState, action) {
@@ -22,6 +24,7 @@ export function users(state = initialState, action) {
       };
     case userConstants.LOGIN_SUCCESS:
       localStorage.setItem("token", action.data.token);
+      setAuthToken(localStorage.getItem("token"))
       return {
         loading: false,
         isAuthenticated: true,
@@ -36,12 +39,14 @@ export function users(state = initialState, action) {
         loading: true,
       };
     case userConstants.REGISTER_SUCCESS:
+
       return {
         ...state,
         loading: false,
       };
     case userConstants.REGISTER_FAILURE:
-      return { loading: false, error: action.error };
+      console.log(action)
+      return { ...state, loading: false, error: action.error };
 
     case userConstants.LOGOUT:
       localStorage.removeItem("token");

@@ -156,13 +156,13 @@ const useToolbarStyles = makeStyles((theme) => ({
   highlight:
     theme.palette.type === "light"
       ? {
-          color: theme.palette.secondary.main,
-          backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-        }
+        color: theme.palette.secondary.main,
+        backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+      }
       : {
-          color: theme.palette.text.primary,
-          backgroundColor: theme.palette.secondary.dark,
-        },
+        color: theme.palette.text.primary,
+        backgroundColor: theme.palette.secondary.dark,
+      },
   title: {
     flex: "1 1 100%",
   },
@@ -233,10 +233,10 @@ const EnhancedTableToolbar = (props) => {
             {numSelected} selected
           </Typography>
         ) : (
-          <Typography className={classes.title} variant="h6" id="tableTitle">
-            Schedules
-          </Typography>
-        )}
+            <Typography className={classes.title} variant="h6" id="tableTitle">
+              Schedules
+            </Typography>
+          )}
 
         {numSelected > 0 ? (
           <Grid container direction="row" justify="flex-end" spacing={1}>
@@ -255,40 +255,40 @@ const EnhancedTableToolbar = (props) => {
             </Grid>
           </Grid>
         ) : (
-          <Grid
-            container
-            direction="row"
-            justify="flex-end"
-            alignItems="center"
-          >
-            <Grid item>
-              <div className={classes.search}>
-                <div className={classes.searchIcon}>
-                  <SearchIcon />
+            <Grid
+              container
+              direction="row"
+              justify="flex-end"
+              alignItems="center"
+            >
+              <Grid item>
+                <div className={classes.search}>
+                  <div className={classes.searchIcon}>
+                    <SearchIcon />
+                  </div>
+                  <InputBase
+                    placeholder="Search…"
+                    classes={{
+                      root: classes.inputRoot,
+                      input: classes.inputInput,
+                    }}
+                    inputProps={{ "aria-label": "search" }}
+                    value={props.searchTerm}
+                    onChange={props.searchAction}
+                    onKeyPress={props.keyPressed}
+                  />
                 </div>
-                <InputBase
-                  placeholder="Search…"
-                  classes={{
-                    root: classes.inputRoot,
-                    input: classes.inputInput,
-                  }}
-                  inputProps={{ "aria-label": "search" }}
-                  value={props.searchTerm}
-                  onChange={props.searchAction}
-                  onKeyPress={props.keyPressed}
-                />
-              </div>
+              </Grid>
+              <Grid item>
+                {/* <ScheduleAddModal /> */}
+                <Tooltip title="Add new">
+                  <IconButton component={Link} to="/schedules-add">
+                    <AddCircleIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
             </Grid>
-            <Grid item>
-              {/* <ScheduleAddModal /> */}
-              <Tooltip title="Add new">
-                <IconButton component={Link} to="/schedules-add">
-                  <AddCircleIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-          </Grid>
-        )}
+          )}
       </Toolbar>
     </React.Fragment>
   );
@@ -457,7 +457,7 @@ export default function Schedules(props) {
       dispatch(
         scheduleActions.getAll(
           `api/schedules?page=${1}&ordering=${
-            sortOption[sortSelected].value
+          sortOption[sortSelected].value
           }&search=${searchTerm}`
         )
       );
@@ -498,14 +498,14 @@ export default function Schedules(props) {
             {!schedules.items ? (
               <Skeleton variant="rect" width={"100%"} height={50} />
             ) : (
-              <EnhancedTableToolbar
-                numSelected={selected.length}
-                selectedIndex={selected}
-                searchTerm={searchTerm}
-                searchAction={(e) => handleChange(e)}
-                keyPressed={keyPressedSearch}
-              />
-            )}
+                <EnhancedTableToolbar
+                  numSelected={selected.length}
+                  selectedIndex={selected}
+                  searchTerm={searchTerm}
+                  searchAction={(e) => handleChange(e)}
+                  keyPressed={keyPressedSearch}
+                />
+              )}
             <TableContainer className={classes.tableContainer}>
               <Table
                 stickyHeader
@@ -522,16 +522,16 @@ export default function Schedules(props) {
                     style={{ marginTop: "10px" }}
                   />
                 ) : (
-                  <EnhancedTableHead
-                    classes={classes}
-                    numSelected={selected.length}
-                    order={order}
-                    orderBy={orderBy}
-                    onSelectAllClick={handleSelectAllClick}
-                    onRequestSort={handleRequestSort}
-                    rowCount={schedules.items.length}
-                  />
-                )}
+                    <EnhancedTableHead
+                      classes={classes}
+                      numSelected={selected.length}
+                      order={order}
+                      orderBy={orderBy}
+                      onSelectAllClick={handleSelectAllClick}
+                      onRequestSort={handleRequestSort}
+                      rowCount={schedules.items.length}
+                    />
+                  )}
                 {!schedules.items || !users.items ? (
                   <Skeleton
                     component={"tbody"}
@@ -541,57 +541,58 @@ export default function Schedules(props) {
                     style={{ marginTop: "10px" }}
                   />
                 ) : (
-                  <TableBody>
-                    {stableSort(
-                      schedules.items,
-                      getComparator(order, orderBy)
-                    ).map((row, index) => {
-                      const isItemSelected = isSelected(row.id);
-                      const labelId = `enhanced-table-checkbox-${index}`;
+                    <TableBody>
+                      {stableSort(
+                        schedules.items,
+                        getComparator(order, orderBy)
+                      ).map((row, index) => {
+                        const isItemSelected = isSelected(row.id);
+                        const labelId = `enhanced-table-checkbox-${index}`;
 
-                      return (
-                        <TableRow
-                          hover
-                          onClick={(event) => handleClick(event, row.id)}
-                          role="checkbox"
-                          aria-checked={isItemSelected}
-                          tabIndex={-1}
-                          key={row.id}
-                          selected={isItemSelected}
-                        >
-                          <TableCell>
-                            <Checkbox
-                              checked={isItemSelected}
-                              inputProps={{ "aria-labelledby": labelId }}
-                            />
-                          </TableCell>
-                          <TableCell
-                            component="th"
-                            id={labelId}
-                            scope="row"
-                            padding="none"
+                        return (
+                          <TableRow
+                            hover
+                            onClick={(event) => handleClick(event, row.id)}
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            tabIndex={-1}
+                            key={row.id}
+                            selected={isItemSelected}
                           >
-                            {users.items
-                              ? users.items.find((x) => x.id === row.staff)
+                            <TableCell>
+                              <Checkbox
+                                checked={isItemSelected}
+                                inputProps={{ "aria-labelledby": labelId }}
+                              />
+                            </TableCell>
+                            <TableCell
+                              component="th"
+                              id={labelId}
+                              scope="row"
+                              padding="none"
+                            >
+                              {users.items && users.maxPage == 1
+                                ? users.items.find((x) => x.id === row.staff)
                                   .username
-                              : row.staff}
-                          </TableCell>
-                          <TableCell scope="row" padding="none">
-                            {row.weekDay}
-                          </TableCell>
-                          <TableCell scope="row" padding="none">
-                            {row.workingTime}
-                          </TableCell>
+                                : row.staff
+                              }
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              {row.weekDay}
+                            </TableCell>
+                            <TableCell scope="row" padding="none">
+                              {row.workingTime}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {emptyRows > 0 && (
+                        <TableRow style={{ height: 53 * emptyRows }}>
+                          <TableCell colSpan={6} />
                         </TableRow>
-                      );
-                    })}
-                    {emptyRows > 0 && (
-                      <TableRow style={{ height: 53 * emptyRows }}>
-                        <TableCell colSpan={6} />
-                      </TableRow>
-                    )}
-                  </TableBody>
-                )}
+                      )}
+                    </TableBody>
+                  )}
               </Table>
             </TableContainer>
             {!schedules.items && !users.items ? (
@@ -602,55 +603,55 @@ export default function Schedules(props) {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
-              <Grid
-                container
-                direction="column"
-                alignItems="flex-end"
-                spacing={2}
-              >
                 <Grid
-                  item
                   container
-                  style={{ marginTop: "10px" }}
-                  justify="flex-end"
-                  alignItems="center"
+                  direction="column"
+                  alignItems="flex-end"
+                  spacing={2}
                 >
-                  <Grid item>
-                    <Pagination
-                      color="primary"
-                      count={schedules.maxPage}
-                      page={pageValue}
-                      onChange={handlePageChange}
-                    />
+                  <Grid
+                    item
+                    container
+                    style={{ marginTop: "10px" }}
+                    justify="flex-end"
+                    alignItems="center"
+                  >
+                    <Grid item>
+                      <Pagination
+                        color="primary"
+                        count={schedules.maxPage}
+                        page={pageValue}
+                        onChange={handlePageChange}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <TextField
+                        style={{ width: "100px" }}
+                        label="page"
+                        id="outlined-page"
+                        variant="outlined"
+                        type="number"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e, value) => keyPressed(e, value)}
+                      />
+                    </Grid>
                   </Grid>
                   <Grid item>
-                    <TextField
-                      style={{ width: "100px" }}
-                      label="page"
-                      id="outlined-page"
-                      variant="outlined"
-                      type="number"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e, value) => keyPressed(e, value)}
+                    <Autocomplete
+                      id="sort-cb"
+                      className={classes.marginBox}
+                      options={sortOption}
+                      value={sortOption[sortSelected]}
+                      getOptionLabel={(options) => options.title}
+                      onChange={(e, value) => handleSortSelected(value)}
+                      style={{ width: "300px" }}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Sort" variant="outlined" />
+                      )}
                     />
                   </Grid>
                 </Grid>
-                <Grid item>
-                  <Autocomplete
-                    id="sort-cb"
-                    className={classes.marginBox}
-                    options={sortOption}
-                    value={sortOption[sortSelected]}
-                    getOptionLabel={(options) => options.title}
-                    onChange={(e, value) => handleSortSelected(value)}
-                    style={{ width: "300px" }}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Sort" variant="outlined" />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            )}
+              )}
           </Container>
         </main>
       </div>

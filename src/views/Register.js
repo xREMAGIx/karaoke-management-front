@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -19,6 +19,7 @@ import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { userActions } from "../actions";
+import { Redirect } from "react-router-dom"
 
 function Copyright() {
   return (
@@ -58,6 +59,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignUp() {
+
+
   const classes = useStyles();
   const [formData, setFormData] = React.useState({
     username: "",
@@ -74,6 +77,7 @@ export default function SignUp() {
   const users = useSelector((state) => state.users);
   const dispatch = useDispatch();
 
+
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -87,23 +91,45 @@ export default function SignUp() {
     if ((username && email && password && confirmPassword) === "") {
       setOpen(true);
       setErrorMessage("Please fill all required field");
-    } else if (password.length < 5) {
+    } else if (password.length < 8) {
       setOpen(true);
-      setErrorMessage("Password must have more than 5 characters");
+      setErrorMessage("Password must have more than 8 characters");
     } else if (password !== confirmPassword) {
       setOpen(true);
       setErrorMessage("Password's not match");
     } else {
       dispatch(userActions.register(formData));
-      if (users.error) {
-        // setOpen(true);
-        // setErrorMessage(users.error);
-        setOpen(true);
-        //setErrorMessage(users.error.message);
-        setErrorMessage("Please enter a valid email");
-      }
+      // if (users.error) {
+      //   // setOpen(true);
+      //   // setErrorMessage(users.error);
+      //   setOpen(true);
+      //   setErrorMessage(users.error.message);
+      //   //setErrorMessage("Please enter a valid email");
+      // }
     }
   };
+
+  useEffect(() => {
+    if (users && users.error && typeof users.error == "string") {
+      console.log(users.error)
+      setOpen(true);
+      setErrorMessage(users.error);
+    }
+  }, [users.error])
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  useEffect(() => {
+    console.log(users)
+    console.log("dit me may")
+    if (users.isAuthenticated == true) {
+      setIsAuthenticated(true)
+    }
+  }, [users])
+
+
+  if (isAuthenticated) {
+    return <Redirect to="/"></Redirect>
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -114,7 +140,7 @@ export default function SignUp() {
         </Avatar>
         <Typography component="h1" variant="h5">
           Sign up
-        </Typography>
+          </Typography>
         <Collapse className={classes.alertContainer} in={open}>
           <Alert
             severity="error"
@@ -208,12 +234,12 @@ export default function SignUp() {
           onClick={() => onSubmit()}
         >
           Sign Up
-        </Button>
+          </Button>
         <Grid container justify="flex-end">
           <Grid item>
             <Link href="/" variant="body2">
               Already have an account? Sign in
-            </Link>
+              </Link>
           </Grid>
         </Grid>
       </div>
@@ -222,4 +248,6 @@ export default function SignUp() {
       </Box>
     </Container>
   );
+
+
 }
