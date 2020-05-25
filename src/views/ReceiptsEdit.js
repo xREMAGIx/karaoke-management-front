@@ -212,7 +212,7 @@ export default function ReceiptEdit(props) {
                   xs={12}
                   style={{ marginTop: "30px" }}
                   container
-                  //spacing={5}
+                //spacing={5}
                 >
                   <Grid item xs={12} container justify="center">
                     <Skeleton variant="rect" width={200} height={45} />
@@ -237,133 +237,133 @@ export default function ReceiptEdit(props) {
                 </Grid>
               </React.Fragment>
             ) : (
-              <React.Fragment>
-                <Typography variant="h4" gutterBottom>
-                  Receipt Edit
+                <React.Fragment>
+                  <Typography variant="h4" gutterBottom>
+                    Receipt Edit
                 </Typography>
-                <Autocomplete
-                  id="room-cb"
-                  options={rooms.items}
-                  value={
-                    rooms.items !== undefined
-                      ? rooms.items.find((element) => element.id === room)
-                      : ""
-                  }
-                  getOptionLabel={(options) => options.roomId}
-                  onChange={(e, value) => handleRoomSelected(value)}
-                  style={{ width: "100%" }}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Room" variant="outlined" />
-                  )}
-                />
-                <Autocomplete
-                  id="status-cb"
-                  options={statusOption}
-                  value={statusOption[statusToIndex(status)]}
-                  getOptionLabel={(options) => options.title}
-                  onChange={(e, value) => handleStatusSelected(value)}
-                  style={{ width: "100%" }}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Status" variant="outlined" />
-                  )}
-                />
+                  <Autocomplete
+                    id="room-cb"
+                    options={rooms.items}
+                    value={
+                      rooms.items !== undefined
+                        ? rooms.items.find((element) => element.id === room)
+                        : ""
+                    }
+                    getOptionLabel={(options) => options.roomId}
+                    onChange={(e, value) => handleRoomSelected(value)}
+                    style={{ width: "100%" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Room" variant="outlined" />
+                    )}
+                  />
+                  <Autocomplete
+                    id="status-cb"
+                    options={statusOption}
+                    value={statusOption[statusToIndex(status)]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleStatusSelected(value)}
+                    style={{ width: "100%" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Status" variant="outlined" />
+                    )}
+                  />
 
-                {formData.status ? (
-                  <React.Fragment>
-                    <DateTimePicker
-                      className={classes.marginBox}
-                      value={selectedCheckIn}
-                      disablePast
-                      ampm={false}
-                      onChange={handleCheckInChange}
-                      label="Check In Time"
-                      showTodayButton
-                      disabled
-                    />
-                    {formData.status === "checkedOut" ? (
+                  {formData.status ? (
+                    <React.Fragment>
                       <DateTimePicker
                         className={classes.marginBox}
-                        value={selectedCheckOut}
+                        value={selectedCheckIn}
                         disablePast
                         ampm={false}
-                        onChange={handleCheckOutChange}
-                        label="Check Out Time"
+                        onChange={handleCheckInChange}
+                        label="Check In Time"
                         showTodayButton
+                        disabled
                       />
-                    ) : null}
-                  </React.Fragment>
-                ) : null}
-
-                <Grid
-                  style={{ marginTop: "10px" }}
-                  container
-                  justify="center"
-                  spacing={5}
-                >
-                  <Grid item>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={addNewProductsClick}
-                    >
-                      Edit Product(s)
-                    </Button>
-                  </Grid>
-                </Grid>
-
-                <Grid container>
-                  {newProducts.length > 0 &&
-                    newProducts.map((product) => (
-                      <Grid
-                        key={newProducts.indexOf(product)}
-                        style={{ marginTop: "10px" }}
-                        item
-                        xs={12}
-                        container
-                        alignItems="center"
-                        spacing={3}
-                      >
-                        <Grid item xs={6}>
-                          <Autocomplete
-                            options={products.items}
-                            onChange={(e, value) =>
-                              handleProductsSelected(
-                                value,
-                                newProducts.indexOf(product)
-                              )
-                            }
-                            value={
-                              product.productId !== "none"
-                                ? products.items.find(
-                                    (element) =>
-                                      element.id === product.productId
-                                  )
-                                : null
-                            }
-                            getOptionLabel={(option) => option.productName}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Product"
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <TextField
-                          style={{ marginTop: "10px" }}
-                          label="Quantity"
-                          id="outlined-quantity"
-                          variant="outlined"
-                          name="quantity"
-                          type="number"
-                          value={product.quantity}
-                          onChange={(e, value) =>
-                            onQuantityChange(e, newProducts.indexOf(product))
-                          }
-                          //   onKeyPress={(e) => keyPressed(e)}
+                      {formData.status === "checkedOut" ? (
+                        <DateTimePicker
+                          className={classes.marginBox}
+                          value={selectedCheckOut}
+                          disablePast
+                          ampm={false}
+                          onChange={handleCheckOutChange}
+                          label="Check Out Time"
+                          showTodayButton
                         />
-                        {/* <Grid item xs={5}>
+                      ) : null}
+                    </React.Fragment>
+                  ) : null}
+
+                  <Grid
+                    style={{ marginTop: "10px" }}
+                    container
+                    justify="center"
+                    spacing={5}
+                  >
+                    <Grid item>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={addNewProductsClick}
+                      >
+                        Edit Product(s)
+                    </Button>
+                    </Grid>
+                  </Grid>
+
+                  <Grid container>
+                    {newProducts.length > 0 &&
+                      newProducts.map((product) => (
+                        <Grid
+                          key={newProducts.indexOf(product)}
+                          style={{ marginTop: "10px" }}
+                          item
+                          xs={12}
+                          container
+                          alignItems="center"
+                          spacing={3}
+                        >
+                          <Grid item xs={6}>
+                            <Autocomplete
+                              options={products.items}
+                              onChange={(e, value) =>
+                                handleProductsSelected(
+                                  value,
+                                  newProducts.indexOf(product)
+                                )
+                              }
+                              value={products && products.items &&
+                                product.productId !== "none"
+                                ? products.items.find(
+                                  (element) =>
+                                    element.id === product.productId
+                                )
+                                : null
+                              }
+                              getOptionLabel={(option) => option.productName}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Product"
+                                  variant="outlined"
+                                />
+                              )}
+                            />
+                          </Grid>
+                          <TextField
+                            style={{ marginTop: "10px" }}
+                            label="Quantity"
+                            id="outlined-quantity"
+                            variant="outlined"
+                            name="quantity"
+                            type="number"
+                            value={product.quantity}
+                            onChange={(e, value) =>
+                              onQuantityChange(e, newProducts.indexOf(product))
+                            }
+                          //   onKeyPress={(e) => keyPressed(e)}
+                          />
+                          {/* <Grid item xs={5}>
                       <Autocomplete
                         options={workingTimeOption}
                         onChange={(e, value) =>
@@ -387,44 +387,44 @@ export default function ReceiptEdit(props) {
                         )}
                       />
                     </Grid> */}
-                        <Grid item xs={1}>
-                          <Button
-                            style={{ color: "#b51a02" }}
-                            variant="text"
-                            onClick={(e) =>
-                              onDelete(newProducts.indexOf(product))
-                            }
-                          >
-                            DEL
+                          <Grid item xs={1}>
+                            <Button
+                              style={{ color: "#b51a02" }}
+                              variant="text"
+                              onClick={(e) =>
+                                onDelete(newProducts.indexOf(product))
+                              }
+                            >
+                              DEL
                           </Button>
+                          </Grid>
                         </Grid>
-                      </Grid>
-                    ))}
-                </Grid>
+                      ))}
+                  </Grid>
 
-                <Grid
-                  style={{ marginTop: "10px" }}
-                  container
-                  justify="center"
-                  spacing={5}
-                >
-                  <Grid item>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={(e) => onSubmit(e)}
-                    >
-                      Update
+                  <Grid
+                    style={{ marginTop: "10px" }}
+                    container
+                    justify="center"
+                    spacing={5}
+                  >
+                    <Grid item>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={(e) => onSubmit(e)}
+                      >
+                        Update
                     </Button>
-                  </Grid>
-                  <Grid item>
-                    <Button component={Link} to="/receipts" variant="contained">
-                      Cancel
+                    </Grid>
+                    <Grid item>
+                      <Button component={Link} to="/receipts" variant="contained">
+                        Cancel
                     </Button>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </React.Fragment>
-            )}
+                </React.Fragment>
+              )}
           </Container>
         </main>
       </div>
