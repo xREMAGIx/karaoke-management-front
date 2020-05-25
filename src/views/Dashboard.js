@@ -213,9 +213,9 @@ export default function Dashboard(props) {
                           {receipts.items.slice(0, 5).map((row) => (
                             <TableRow hover key={row.id}>
                               <TableCell component="th" scope="row">
-                                {rooms.items
+                                {rooms.items && rooms.maxPage == 1
                                   ? rooms.items.find((x) => x.id === row.room)
-                                      .roomId
+                                    .roomId
                                   : row.room}
                               </TableCell>
                               <TableCell scope="row">

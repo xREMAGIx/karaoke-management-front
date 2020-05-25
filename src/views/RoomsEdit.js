@@ -46,8 +46,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const statusOption = [
+  { title: "None", value: "none" },
   { title: "Available", value: "available" },
   { title: "Unavailable", value: "notAvailable" },
+
 ];
 
 export default function RoomEditModal(props) {
@@ -60,7 +62,7 @@ export default function RoomEditModal(props) {
   const [formData, setFormData] = useState({
     roomId: "a",
     price: "1",
-    status: "",
+    status: "available",
   });
 
   const { roomId, price } = formData;
@@ -89,6 +91,7 @@ export default function RoomEditModal(props) {
   };
 
   const onSubmit = async () => {
+    console.log(formData)
     dispatch(roomActions.update(props.id, formData));
   };
 
@@ -108,9 +111,9 @@ export default function RoomEditModal(props) {
   const statusToIndex = (status) => {
     switch (status) {
       case "available":
-        return 0;
-      case "notAvailable":
         return 1;
+      case "notAvailable":
+        return 2;
       default:
         return 0;
     }
@@ -118,9 +121,11 @@ export default function RoomEditModal(props) {
 
   const handleStatusSelected = (value) => {
     console.log(value);
+
     if (value) {
       setFormData({ ...formData, status: value.value });
     }
+    console.log(formData)
   };
 
   return (
