@@ -7,6 +7,11 @@ import CustomDrawer from "../components/CustomDrawer";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 
 import { DateTimePicker } from "@material-ui/pickers";
 
@@ -62,8 +67,13 @@ export default function ReceiptAdd(props) {
   const [selectedCheckIn, handleCheckInChange] = useState(new Date());
   const [selectedCheckOut, handleCheckOutChange] = useState(new Date());
 
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
+  const receipts = useSelector((state) => state.receipts);
+
   useEffect(() => {
-    dispatch(roomActions.getAllNonPagination());
+    dispatch(roomActions.getAllNonPagination(`api/allRooms?status=available`));
     dispatch(productActions.getAllNonPagination());
   }, [dispatch]);
 
@@ -82,7 +92,7 @@ export default function ReceiptAdd(props) {
   const addNewProductsClick = () => {
     setNewProducts((newProducts) => [
       ...newProducts,
-      { productId: "none", quantity: 1 },
+      { productId: null, quantity: 1 },
     ]);
   };
 
@@ -98,12 +108,11 @@ export default function ReceiptAdd(props) {
   };
 
   useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
-  useEffect(() => {
-    console.log(newProducts);
-  }, [newProducts]);
+    if (receipts.error && typeof receipts.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(receipts.error);
+    }
+  }, [receipts, receipts.error]);
 
   const onDelete = (index) => {
     newProducts.splice(index, 1);
@@ -131,7 +140,7 @@ export default function ReceiptAdd(props) {
           checkInDate: selectedCheckIn,
         })
       );
-    else
+    else if (selectedCheckIn < selectedCheckOut)
       dispatch(
         receiptActions.add({
           ...formData,
@@ -140,6 +149,10 @@ export default function ReceiptAdd(props) {
           checkOutDate: selectedCheckOut,
         })
       );
+    else {
+      setErrorOpen(true);
+      setErrorMessage("CheckIn time must before CheckOut time");
+    }
   };
 
   const keyPressed = (e) => {
@@ -157,13 +170,34 @@ export default function ReceiptAdd(props) {
             <Typography variant="h4" gutterBottom>
               Add new Receipt
             </Typography>
+            {/* Error warning */}
+            <Collapse className={classes.alertContainer} in={errorOpen}>
+              <Alert
+                severity="error"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setErrorOpen(false);
+                    }}
+                  >
+                    <CloseIcon fontSize="inherit" />
+                  </IconButton>
+                }
+              >
+                <AlertTitle>Error</AlertTitle>
+                {errorMessage}
+              </Alert>
+            </Collapse>
+            {/* Content */}
             <Autocomplete
               id="room-cb"
               className={classes.marginBox}
               options={rooms.items}
               getOptionLabel={(options) => options.roomId}
               onChange={(e, value) => handleRoomSelected(value)}
-              style={{ width: "100%" }}
               renderInput={(params) => (
                 <TextField {...params} label="Room" variant="outlined" />
               )}
@@ -229,6 +263,7 @@ export default function ReceiptAdd(props) {
                     xs={12}
                     container
                     alignItems="center"
+                    justify="center"
                     spacing={3}
                   >
                     <Grid item xs={6}>
@@ -241,7 +276,7 @@ export default function ReceiptAdd(props) {
                           )
                         }
                         value={
-                          product.productId !== "none"
+                          product.productId !== null
                             ? products.items.find(
                                 (element) => element.id === product.productId
                               )
@@ -257,20 +292,21 @@ export default function ReceiptAdd(props) {
                         )}
                       />
                     </Grid>
-                    <TextField
-                      style={{ marginTop: "10px" }}
-                      label="Quantity"
-                      id="outlined-quantity"
-                      variant="outlined"
-                      name="quantity"
-                      type="number"
-                      value={product.quantity}
-                      onChange={(e, value) =>
-                        onQuantityChange(e, newProducts.indexOf(product))
-                      }
-                      onKeyPress={(e) => keyPressed(e)}
-                    />
-
+                    <Grid item xs={5}>
+                      <TextField
+                        fullWidth
+                        label="Quantity"
+                        id="outlined-quantity"
+                        variant="outlined"
+                        name="quantity"
+                        type="number"
+                        value={product.quantity}
+                        onChange={(e, value) =>
+                          onQuantityChange(e, newProducts.indexOf(product))
+                        }
+                        onKeyPress={(e) => keyPressed(e)}
+                      />
+                    </Grid>
                     <Grid item xs={1}>
                       <Button
                         style={{ color: "#b51a02" }}

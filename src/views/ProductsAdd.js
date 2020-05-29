@@ -10,9 +10,15 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import FormControl from "@material-ui/core/FormControl";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
+
 import { Link } from "react-router-dom";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { productActions } from "../actions";
 
@@ -39,6 +45,9 @@ const useStyles = makeStyles((theme) => ({
   gridList: {
     height: "60vh",
   },
+  alertContainer: {
+    margin: theme.spacing(1),
+  },
 }));
 
 export default function ProductAdd(props) {
@@ -55,9 +64,17 @@ export default function ProductAdd(props) {
   });
   const { sku, productName, price, stock } = formData;
 
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
+  const products = useSelector((state) => state.products);
+
   useEffect(() => {
-    console.log(formData);
-  }, [formData]);
+    if (products.error && typeof products.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(products.error);
+    }
+  }, [products.error]);
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -78,6 +95,28 @@ export default function ProductAdd(props) {
             <Typography variant="h4" gutterBottom>
               Add new product
             </Typography>
+
+            <Collapse className={classes.alertContainer} in={errorOpen}>
+              <Alert
+                severity="error"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setErrorOpen(false);
+                    }}
+                  >
+                    <CloseIcon fontSize="inherit" />
+                  </IconButton>
+                }
+              >
+                <AlertTitle>Error</AlertTitle>
+                {errorMessage}
+              </Alert>
+            </Collapse>
+
             <Grid container direction="row" spacing={4}>
               <Grid item xs={12}>
                 <TextField

@@ -7,6 +7,12 @@ import CustomDrawer from "../components/CustomDrawer";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
+
 import { Link } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -49,16 +55,6 @@ const weekdaysOption = [
   { title: "Sunday", value: "sunday" },
 ];
 
-// const startOption = [
-//   { title: "7:00", value: "7:00" },
-//   { title: "9:00", value: "9:00" },
-// ];
-
-// const endOption = [
-//   { title: "10:00", value: "10:00" },
-//   { title: "12:00", value: "12:00" },
-// ];
-
 const workingTimeOption = [
   { title: "Morning", value: "morning" },
   { title: "Afternoon", value: "afternoon" },
@@ -68,7 +64,8 @@ const workingTimeOption = [
 export default function UserEdit(props) {
   const classes = useStyles();
 
-  const [loading, setLoading] = React.useState(true);
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
@@ -82,6 +79,13 @@ export default function UserEdit(props) {
   const [newSchedules, setNewSchedules] = React.useState([]);
 
   const { username, email, salary } = formData;
+
+  useEffect(() => {
+    if (users.error && typeof users.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(users.error);
+    }
+  }, [users.error]);
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -118,28 +122,6 @@ export default function UserEdit(props) {
       });
     }
   };
-
-  // const handleStartSelected = (value, index) => {
-  //   if (value) {
-  //     setNewSchedules((state) => {
-  //       let new_schedule = state;
-  //       new_schedule[index].start = value.value;
-
-  //       return [...new_schedule];
-  //     });
-  //   }
-  // };
-
-  // const handleEndSelected = (value, index) => {
-  //   if (value) {
-  //     setNewSchedules((state) => {
-  //       let new_schedule = state;
-  //       new_schedule[index].end = value.value;
-
-  //       return [...new_schedule];
-  //     });
-  //   }
-  // };
 
   const weekDayToIndex = (weekDay) => {
     switch (weekDay) {
@@ -202,13 +184,8 @@ export default function UserEdit(props) {
 
     if (users.item !== undefined && users.item !== null) {
       setNewSchedules([...users.item.schedules]);
-      setLoading((loading) => !loading);
     }
   }, [users.item]);
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
 
   return (
     <React.Fragment>
@@ -217,7 +194,7 @@ export default function UserEdit(props) {
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.container}>
-            {loading ? (
+            {users.loading ? (
               <React.Fragment>
                 <Grid
                   container
@@ -236,12 +213,7 @@ export default function UserEdit(props) {
                   </Grid>
                 </Grid>
 
-                <Grid
-                  xs={12}
-                  style={{ marginTop: "30px" }}
-                  container
-                  //spacing={5}
-                >
+                <Grid style={{ marginTop: "30px" }} container>
                   <Grid item xs={12} container justify="center">
                     <Skeleton variant="rect" width={200} height={45} />
                   </Grid>
@@ -271,6 +243,28 @@ export default function UserEdit(props) {
                     <Typography variant="h4" gutterBottom>
                       User edit
                     </Typography>
+                    {/* Error warning */}
+                    <Collapse className={classes.alertContainer} in={errorOpen}>
+                      <Alert
+                        severity="error"
+                        action={
+                          <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                              setErrorOpen(false);
+                            }}
+                          >
+                            <CloseIcon fontSize="inherit" />
+                          </IconButton>
+                        }
+                      >
+                        <AlertTitle>Error</AlertTitle>
+                        {errorMessage}
+                      </Alert>
+                    </Collapse>
+                    {/* Content */}
                     <TextField
                       fullWidth
                       style={{ marginTop: "10px" }}
@@ -301,7 +295,7 @@ export default function UserEdit(props) {
                       variant="outlined"
                       name="salary"
                       type="number"
-                      value={salary}
+                      value={salary || 0}
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />
@@ -320,11 +314,6 @@ export default function UserEdit(props) {
                           Add new Schedule
                         </Button>
                       </Grid>
-                      {/* <Grid item>
-                        <Button variant="contained" onClick={handleClose}>
-                          Cancel
-                        </Button>
-                      </Grid> */}
                     </Grid>
 
                     <Grid container>
@@ -363,48 +352,6 @@ export default function UserEdit(props) {
                                 )}
                               />
                             </Grid>
-                            {/* 
-                        <Grid item xs={3}>
-                          <Autocomplete
-                            id="combo-box-start"
-                            options={startOption}
-                            onChange={(e, value) =>
-                              handleStartSelected(
-                                value,
-                                newSchedules.indexOf(schedule)
-                              )
-                            }
-                            getOptionLabel={(option) => option.title}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Start"
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
-
-                        <Grid item xs={3}>
-                          <Autocomplete
-                            id="combo-box-end"
-                            options={endOption}
-                            onChange={(e, value) =>
-                              handleEndSelected(
-                                value,
-                                newSchedules.indexOf(schedule)
-                              )
-                            }
-                            getOptionLabel={(option) => option.title}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="End"
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid> */}
 
                             <Grid item xs={5}>
                               <Autocomplete

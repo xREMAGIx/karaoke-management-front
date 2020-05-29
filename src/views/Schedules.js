@@ -31,6 +31,13 @@ import AddCircleIcon from "@material-ui/icons/AddCircle";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import { Link } from "react-router-dom";
 
 function descendingComparator(a, b, orderBy) {
@@ -156,13 +163,13 @@ const useToolbarStyles = makeStyles((theme) => ({
   highlight:
     theme.palette.type === "light"
       ? {
-        color: theme.palette.secondary.main,
-        backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-      }
+          color: theme.palette.secondary.main,
+          backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+        }
       : {
-        color: theme.palette.text.primary,
-        backgroundColor: theme.palette.secondary.dark,
-      },
+          color: theme.palette.text.primary,
+          backgroundColor: theme.palette.secondary.dark,
+        },
   title: {
     flex: "1 1 100%",
   },
@@ -210,15 +217,62 @@ const useToolbarStyles = makeStyles((theme) => ({
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
-  //const schedule = useSelector(state => state.authentication.schedule);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
     dispatch(scheduleActions.delete(id));
+    props.setSelectedIndex([]);
+    handleDeleteClose();
+  };
+
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
   };
 
   return (
     <React.Fragment>
+      {/* Delete dialog */}
+      <Dialog
+        open={deleteOpen}
+        onClose={handleDeleteClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to delete?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText
+            id="alert-dialog-description1"
+            variant="body1"
+            color="error"
+          >
+            Delete this/these will affect this/these USER(S) monthly salary.
+          </DialogContentText>
+          <DialogContentText id="alert-dialog-description2">
+            Delete {numSelected} item(s)?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose} color="secondary">
+            Disagree
+          </Button>
+          <Button
+            onClick={() => onDelete(selectedIndex)}
+            color="primary"
+            autoFocus
+          >
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Toolbar */}
       <Toolbar
         className={clsx(classes.root, {
           [classes.highlight]: numSelected > 0,
@@ -233,10 +287,10 @@ const EnhancedTableToolbar = (props) => {
             {numSelected} selected
           </Typography>
         ) : (
-            <Typography className={classes.title} variant="h6" id="tableTitle">
-              Schedules
-            </Typography>
-          )}
+          <Typography className={classes.title} variant="h6" id="tableTitle">
+            Schedules
+          </Typography>
+        )}
 
         {numSelected > 0 ? (
           <Grid container direction="row" justify="flex-end" spacing={1}>
@@ -245,50 +299,47 @@ const EnhancedTableToolbar = (props) => {
             ) : null}
             <Grid item>
               <Tooltip title="Delete">
-                <IconButton
-                  aria-label="delete"
-                  onClick={() => onDelete(selectedIndex[0])}
-                >
+                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
             </Grid>
           </Grid>
         ) : (
-            <Grid
-              container
-              direction="row"
-              justify="flex-end"
-              alignItems="center"
-            >
-              <Grid item>
-                <div className={classes.search}>
-                  <div className={classes.searchIcon}>
-                    <SearchIcon />
-                  </div>
-                  <InputBase
-                    placeholder="Search…"
-                    classes={{
-                      root: classes.inputRoot,
-                      input: classes.inputInput,
-                    }}
-                    inputProps={{ "aria-label": "search" }}
-                    value={props.searchTerm}
-                    onChange={props.searchAction}
-                    onKeyPress={props.keyPressed}
-                  />
+          <Grid
+            container
+            direction="row"
+            justify="flex-end"
+            alignItems="center"
+          >
+            <Grid item>
+              <div className={classes.search}>
+                <div className={classes.searchIcon}>
+                  <SearchIcon />
                 </div>
-              </Grid>
-              <Grid item>
-                {/* <ScheduleAddModal /> */}
-                <Tooltip title="Add new">
-                  <IconButton component={Link} to="/schedules-add">
-                    <AddCircleIcon />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
+                <InputBase
+                  placeholder="Search…"
+                  classes={{
+                    root: classes.inputRoot,
+                    input: classes.inputInput,
+                  }}
+                  inputProps={{ "aria-label": "search" }}
+                  value={props.searchTerm}
+                  onChange={props.searchAction}
+                  onKeyPress={props.keyPressed}
+                />
+              </div>
             </Grid>
-          )}
+            <Grid item>
+              {/* <ScheduleAddModal /> */}
+              <Tooltip title="Add new">
+                <IconButton component={Link} to="/schedules-add">
+                  <AddCircleIcon />
+                </IconButton>
+              </Tooltip>
+            </Grid>
+          </Grid>
+        )}
       </Toolbar>
     </React.Fragment>
   );
@@ -333,6 +384,19 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: 50,
     maxWidth: 100,
   },
+  linearLoading: {
+    color: theme.palette.primary.main,
+    marginBottom: theme.spacing(2),
+    height: 10,
+  },
+  tableRow: {
+    "& .MuiTableCell-root": {
+      padding: 0,
+    },
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.action.focus,
+    },
+  },
 }));
 
 const sortOption = [
@@ -356,9 +420,8 @@ export default function Schedules(props) {
 
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const [openAlert1, setOpenAlert1] = React.useState(false);
-  const [openAlert2, setOpenAlert2] = React.useState(false);
-  const [openAlert3, setOpenAlert3] = React.useState(false);
+  const [openAlert, setOpenAlert] = React.useState(false);
+  const [openAlertMessage, setOpenAlertMessage] = React.useState("");
 
   const [pageValue, setPageValue] = React.useState(1);
   const [pageValueText, setPageValueText] = React.useState(1);
@@ -370,9 +433,22 @@ export default function Schedules(props) {
   useEffect(() => {
     dispatch(userActions.getAllNonPagination());
     dispatch(scheduleActions.getAll());
-    if (history.location.state === 201) setOpenAlert1(true);
-    if (history.location.state === 202) setOpenAlert2(true);
-    if (history.location.state === 203) setOpenAlert3(true);
+    switch (history.location.state) {
+      case 201:
+        setOpenAlert(true);
+        setOpenAlertMessage("Add successful!");
+        break;
+      case 202:
+        setOpenAlert(true);
+        setOpenAlertMessage("Update successful!");
+        break;
+      case 203:
+        setOpenAlert(true);
+        setOpenAlertMessage("Delete successful!");
+        break;
+      default:
+        break;
+    }
   }, [dispatch]);
 
   const handleRequestSort = (event, property) => {
@@ -457,7 +533,7 @@ export default function Schedules(props) {
       dispatch(
         scheduleActions.getAll(
           `api/schedules?page=${1}&ordering=${
-          sortOption[sortSelected].value
+            sortOption[sortSelected].value
           }&search=${searchTerm}`
         )
       );
@@ -468,44 +544,37 @@ export default function Schedules(props) {
       return;
     }
 
-    setOpenAlert1(false);
-    setOpenAlert2(false);
-    setOpenAlert3(false);
+    setOpenAlert(false);
   };
 
   return (
     <React.Fragment>
-      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleClose}>
         <Alert onClose={handleClose} severity="success">
-          Add successful!
+          {openAlertMessage}
         </Alert>
       </Snackbar>
-      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Update successful!
-        </Alert>
-      </Snackbar>
-      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Delete successful!
-        </Alert>
-      </Snackbar>
+
       <div className={classes.root}>
         <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
             {!schedules.items ? (
-              <Skeleton variant="rect" width={"100%"} height={50} />
+              <React.Fragment>
+                <LinearProgress className={classes.linearLoading} />
+                <Skeleton variant="rect" width={"100%"} height={50} />
+              </React.Fragment>
             ) : (
-                <EnhancedTableToolbar
-                  numSelected={selected.length}
-                  selectedIndex={selected}
-                  searchTerm={searchTerm}
-                  searchAction={(e) => handleChange(e)}
-                  keyPressed={keyPressedSearch}
-                />
-              )}
+              <EnhancedTableToolbar
+                numSelected={selected.length}
+                selectedIndex={selected}
+                searchTerm={searchTerm}
+                setSelectedIndex={setSelected}
+                searchAction={(e) => handleChange(e)}
+                keyPressed={keyPressedSearch}
+              />
+            )}
             <TableContainer className={classes.tableContainer}>
               <Table
                 stickyHeader
@@ -522,16 +591,16 @@ export default function Schedules(props) {
                     style={{ marginTop: "10px" }}
                   />
                 ) : (
-                    <EnhancedTableHead
-                      classes={classes}
-                      numSelected={selected.length}
-                      order={order}
-                      orderBy={orderBy}
-                      onSelectAllClick={handleSelectAllClick}
-                      onRequestSort={handleRequestSort}
-                      rowCount={schedules.items.length}
-                    />
-                  )}
+                  <EnhancedTableHead
+                    classes={classes}
+                    numSelected={selected.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={schedules.items.length}
+                  />
+                )}
                 {!schedules.items || !users.items ? (
                   <Skeleton
                     component={"tbody"}
@@ -541,58 +610,58 @@ export default function Schedules(props) {
                     style={{ marginTop: "10px" }}
                   />
                 ) : (
-                    <TableBody>
-                      {stableSort(
-                        schedules.items,
-                        getComparator(order, orderBy)
-                      ).map((row, index) => {
-                        const isItemSelected = isSelected(row.id);
-                        const labelId = `enhanced-table-checkbox-${index}`;
+                  <TableBody>
+                    {stableSort(
+                      schedules.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
+                      const isItemSelected = isSelected(row.id);
+                      const labelId = `enhanced-table-checkbox-${index}`;
 
-                        return (
-                          <TableRow
-                            hover
-                            onClick={(event) => handleClick(event, row.id)}
-                            role="checkbox"
-                            aria-checked={isItemSelected}
-                            tabIndex={-1}
-                            key={row.id}
-                            selected={isItemSelected}
+                      return (
+                        <TableRow
+                          hover
+                          onClick={(event) => handleClick(event, row.id)}
+                          role="checkbox"
+                          aria-checked={isItemSelected}
+                          tabIndex={-1}
+                          key={row.id}
+                          selected={isItemSelected}
+                          className={classes.tableRow}
+                        >
+                          <TableCell>
+                            <Checkbox
+                              checked={isItemSelected}
+                              inputProps={{ "aria-labelledby": labelId }}
+                            />
+                          </TableCell>
+                          <TableCell
+                            component="th"
+                            id={labelId}
+                            scope="row"
+                            padding="none"
                           >
-                            <TableCell>
-                              <Checkbox
-                                checked={isItemSelected}
-                                inputProps={{ "aria-labelledby": labelId }}
-                              />
-                            </TableCell>
-                            <TableCell
-                              component="th"
-                              id={labelId}
-                              scope="row"
-                              padding="none"
-                            >
-                              {users.items && users.maxPage == 1
-                                ? users.items.find((x) => x.id === row.staff)
+                            {users.items && users.maxPage === 1
+                              ? users.items.find((x) => x.id === row.staff)
                                   .username
-                                : row.staff
-                              }
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.weekDay}
-                            </TableCell>
-                            <TableCell scope="row" padding="none">
-                              {row.workingTime}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                      {emptyRows > 0 && (
-                        <TableRow style={{ height: 53 * emptyRows }}>
-                          <TableCell colSpan={6} />
+                              : row.staff}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {row.weekDay}
+                          </TableCell>
+                          <TableCell scope="row" padding="none">
+                            {row.workingTime}
+                          </TableCell>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  )}
+                      );
+                    })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 53 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+                )}
               </Table>
             </TableContainer>
             {!schedules.items && !users.items ? (
@@ -603,55 +672,55 @@ export default function Schedules(props) {
                 style={{ marginLeft: "auto", marginTop: "10px" }}
               />
             ) : (
+              <Grid
+                container
+                direction="column"
+                alignItems="flex-end"
+                spacing={2}
+              >
                 <Grid
+                  item
                   container
-                  direction="column"
-                  alignItems="flex-end"
-                  spacing={2}
+                  style={{ marginTop: "10px" }}
+                  justify="flex-end"
+                  alignItems="center"
                 >
-                  <Grid
-                    item
-                    container
-                    style={{ marginTop: "10px" }}
-                    justify="flex-end"
-                    alignItems="center"
-                  >
-                    <Grid item>
-                      <Pagination
-                        color="primary"
-                        count={schedules.maxPage}
-                        page={pageValue}
-                        onChange={handlePageChange}
-                      />
-                    </Grid>
-                    <Grid item>
-                      <TextField
-                        style={{ width: "100px" }}
-                        label="page"
-                        id="outlined-page"
-                        variant="outlined"
-                        type="number"
-                        onChange={(e) => onChange(e)}
-                        onKeyPress={(e, value) => keyPressed(e, value)}
-                      />
-                    </Grid>
+                  <Grid item>
+                    <Pagination
+                      color="primary"
+                      count={schedules.maxPage}
+                      page={pageValue}
+                      onChange={handlePageChange}
+                    />
                   </Grid>
                   <Grid item>
-                    <Autocomplete
-                      id="sort-cb"
-                      className={classes.marginBox}
-                      options={sortOption}
-                      value={sortOption[sortSelected]}
-                      getOptionLabel={(options) => options.title}
-                      onChange={(e, value) => handleSortSelected(value)}
-                      style={{ width: "300px" }}
-                      renderInput={(params) => (
-                        <TextField {...params} label="Sort" variant="outlined" />
-                      )}
+                    <TextField
+                      style={{ width: "100px" }}
+                      label="page"
+                      id="outlined-page"
+                      variant="outlined"
+                      type="number"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e, value) => keyPressed(e, value)}
                     />
                   </Grid>
                 </Grid>
-              )}
+                <Grid item>
+                  <Autocomplete
+                    id="sort-cb"
+                    className={classes.marginBox}
+                    options={sortOption}
+                    value={sortOption[sortSelected]}
+                    getOptionLabel={(options) => options.title}
+                    onChange={(e, value) => handleSortSelected(value)}
+                    style={{ width: "300px" }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Sort" variant="outlined" />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+            )}
           </Container>
         </main>
       </div>

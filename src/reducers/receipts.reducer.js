@@ -16,11 +16,14 @@ export function receipts(state = initialState, action) {
   switch (action.type) {
     case receiptConstants.GETALL_REQUEST:
       return {
+        ...state,
         loading: true,
       };
     case receiptConstants.GETALL_SUCCESS:
       return {
         ...state,
+        loading: false,
+        error: null,
         next: action.receipts.next,
         previous: action.receipts.previous,
         items: action.receipts.results,
@@ -29,8 +32,10 @@ export function receipts(state = initialState, action) {
       };
     case receiptConstants.GETALL_FAILURE:
       return {
+        ...state,
         error: action.error,
       };
+
     case receiptConstants.DELETE_REQUEST:
       // add 'deleting:true' property to receipt being deleted
       return {
@@ -42,6 +47,7 @@ export function receipts(state = initialState, action) {
     case receiptConstants.DELETE_SUCCESS:
       // remove deleted receipt from state
       return {
+        ...state,
         items: state.items.filter((receipt) => receipt.id !== action.id),
       };
     case receiptConstants.DELETE_FAILURE:
@@ -65,12 +71,9 @@ export function receipts(state = initialState, action) {
         ...state,
       };
     case receiptConstants.UPDATE_SUCCESS:
-      return {
-        ...state,
-        item: [],
-      };
+      return { ...state };
     case receiptConstants.UPDATE_FAILURE:
-      return { error: action.error };
+      return { ...state, error: action.error };
 
     case receiptConstants.GETBYID_REQUEST:
       return {
@@ -80,10 +83,20 @@ export function receipts(state = initialState, action) {
     case receiptConstants.GETBYID_SUCCESS:
       return {
         ...state,
+        loading: false,
         item: action.receipts,
       };
     case receiptConstants.GETBYID_ERROR:
-      return { error: action.error };
+      return { ...state, error: action.error };
+
+    case receiptConstants.ADD_REQUEST:
+      return {
+        ...state,
+      };
+    case receiptConstants.ADD_SUCCESS:
+      return { ...state };
+    case receiptConstants.ADD_FAILURE:
+      return { ...state, error: action.error };
 
     default:
       return state;

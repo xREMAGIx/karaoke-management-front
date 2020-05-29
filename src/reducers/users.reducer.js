@@ -1,5 +1,5 @@
-import { userConstants } from "../constants"
-import setAuthToken from "../store/setAuthToken"
+import { userConstants } from "../constants";
+import setAuthToken from "../store/setAuthToken";
 
 const initialState = {
   token: localStorage.getItem("token"),
@@ -24,7 +24,7 @@ export function users(state = initialState, action) {
       };
     case userConstants.LOGIN_SUCCESS:
       localStorage.setItem("token", action.data.token);
-      setAuthToken(localStorage.getItem("token"))
+      setAuthToken(localStorage.getItem("token"));
       return {
         loading: false,
         isAuthenticated: true,
@@ -39,13 +39,12 @@ export function users(state = initialState, action) {
         loading: true,
       };
     case userConstants.REGISTER_SUCCESS:
-
       return {
         ...state,
         loading: false,
       };
     case userConstants.REGISTER_FAILURE:
-      console.log(action)
+      console.log(action);
       return { ...state, loading: false, error: action.error };
 
     case userConstants.LOGOUT:
@@ -76,11 +75,14 @@ export function users(state = initialState, action) {
 
     case userConstants.GETALL_REQUEST:
       return {
+        ...state,
         loading: true,
       };
     case userConstants.GETALL_SUCCESS:
       return {
         ...state,
+        loading: false,
+        error: null,
         items: action.users.results,
         next: action.users.next,
         previous: action.users.previous,
@@ -89,6 +91,7 @@ export function users(state = initialState, action) {
       };
     case userConstants.GETALL_FAILURE:
       return {
+        ...state,
         error: action.error,
       };
     case userConstants.DELETE_REQUEST:
@@ -128,9 +131,10 @@ export function users(state = initialState, action) {
     case userConstants.UPDATE_SUCCESS:
       return {
         ...state,
+        error: null,
       };
     case userConstants.UPDATE_FAILURE:
-      return { error: action.error };
+      return { ...state, error: action.error };
 
     case userConstants.GETBYID_REQUEST:
       return {
@@ -140,11 +144,31 @@ export function users(state = initialState, action) {
     case userConstants.GETBYID_SUCCESS:
       return {
         ...state,
+        loading: false,
+        error: null,
+
         item: action.user.result,
       };
     case userConstants.GETBYID_ERROR:
-      return { error: action.error };
+      return { ...state, error: action.error };
 
+    case userConstants.ADD_SUCCESS:
+      return {
+        ...state,
+        error: null,
+        loading: false,
+      };
+    case userConstants.ADD_FAILURE:
+      return {
+        ...state,
+        error: action.error,
+      };
+
+    case userConstants.ADD_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
     default:
       return state;
   }

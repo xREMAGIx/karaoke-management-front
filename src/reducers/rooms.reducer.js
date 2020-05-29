@@ -16,11 +16,13 @@ export function rooms(state = initialState, action) {
   switch (action.type) {
     case roomConstants.GETALL_REQUEST:
       return {
+        ...state,
         loading: true,
       };
     case roomConstants.GETALL_SUCCESS:
       return {
         ...state,
+        loading: false,
         items: action.rooms.results,
         next: action.rooms.next,
         previous: action.rooms.previous,
@@ -31,6 +33,7 @@ export function rooms(state = initialState, action) {
       return {
         error: action.error,
       };
+
     case roomConstants.DELETE_REQUEST:
       // add 'deleting:true' property to room being deleted
       return {
@@ -63,14 +66,16 @@ export function rooms(state = initialState, action) {
     case roomConstants.UPDATE_REQUEST:
       return {
         ...state,
+        error: undefined,
       };
     case roomConstants.UPDATE_SUCCESS:
       return {
         ...state,
+        error: null,
         item: [],
       };
     case roomConstants.UPDATE_FAILURE:
-      return { error: action.error };
+      return { ...state, error: action.error };
 
     case roomConstants.GETBYID_REQUEST:
       return {
@@ -80,10 +85,25 @@ export function rooms(state = initialState, action) {
     case roomConstants.GETBYID_SUCCESS:
       return {
         ...state,
+        loading: false,
         item: action.rooms,
       };
     case roomConstants.GETBYID_ERROR:
       return { error: action.error };
+
+    case roomConstants.ADD_REQUEST:
+      return {
+        ...state,
+        error: undefined,
+      };
+    case roomConstants.ADD_SUCCESS:
+      return {
+        ...state,
+        item: [],
+        error: null,
+      };
+    case roomConstants.ADD_FAILURE:
+      return { ...state, error: action.error };
 
     default:
       return state;

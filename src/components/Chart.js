@@ -6,6 +6,8 @@ import {
   XAxis,
   YAxis,
   Label,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { useSelector } from "react-redux";
@@ -48,7 +50,7 @@ export default function Chart() {
         let total = 0;
 
         for (let i = 0; i < weekReceipts[weekReceipts.length - 1].length; i++) {
-          total += weekReceipts[weekReceipts.length - 1][i].total;
+          total += parseFloat(weekReceipts[weekReceipts.length - 1][i].total);
         }
 
         totalReceipts[totalReceipts.length - 1] = createData(
@@ -71,7 +73,7 @@ export default function Chart() {
 
   return (
     <React.Fragment>
-      <Title>Today</Title>
+      <Title>Total past 7 days</Title>
       <ResponsiveContainer>
         <LineChart
           data={TotalReceipts}
@@ -92,6 +94,8 @@ export default function Chart() {
               Total of receipts ($)
             </Label>
           </YAxis>
+          <Tooltip />
+          <Legend />
           <Line
             type="monotone"
             dataKey="amount"

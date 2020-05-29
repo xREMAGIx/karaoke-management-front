@@ -19,7 +19,7 @@ import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { userActions } from "../actions";
-import { Redirect } from "react-router-dom"
+import { Redirect } from "react-router-dom";
 
 function Copyright() {
   return (
@@ -59,8 +59,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignUp() {
-
-
   const classes = useStyles();
   const [formData, setFormData] = React.useState({
     username: "",
@@ -76,7 +74,6 @@ export default function SignUp() {
 
   const users = useSelector((state) => state.users);
   const dispatch = useDispatch();
-
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -99,36 +96,25 @@ export default function SignUp() {
       setErrorMessage("Password's not match");
     } else {
       dispatch(userActions.register(formData));
-      // if (users.error) {
-      //   // setOpen(true);
-      //   // setErrorMessage(users.error);
-      //   setOpen(true);
-      //   setErrorMessage(users.error.message);
-      //   //setErrorMessage("Please enter a valid email");
-      // }
     }
   };
 
   useEffect(() => {
-    if (users && users.error && typeof users.error == "string") {
-      console.log(users.error)
+    if (users && users.error && typeof users.error === "string") {
       setOpen(true);
       setErrorMessage(users.error);
     }
-  }, [users.error])
+  }, [users, users.error]);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   useEffect(() => {
-    console.log(users)
-    console.log("dit me may")
-    if (users.isAuthenticated == true) {
-      setIsAuthenticated(true)
+    if (users.isAuthenticated === true) {
+      setIsAuthenticated(true);
     }
-  }, [users])
-
+  }, [users]);
 
   if (isAuthenticated) {
-    return <Redirect to="/"></Redirect>
+    return <Redirect to="/"></Redirect>;
   }
 
   return (
@@ -140,7 +126,7 @@ export default function SignUp() {
         </Avatar>
         <Typography component="h1" variant="h5">
           Sign up
-          </Typography>
+        </Typography>
         <Collapse className={classes.alertContainer} in={open}>
           <Alert
             severity="error"
@@ -234,12 +220,12 @@ export default function SignUp() {
           onClick={() => onSubmit()}
         >
           Sign Up
-          </Button>
+        </Button>
         <Grid container justify="flex-end">
           <Grid item>
             <Link href="/" variant="body2">
               Already have an account? Sign in
-              </Link>
+            </Link>
           </Grid>
         </Grid>
       </div>
@@ -248,6 +234,4 @@ export default function SignUp() {
       </Box>
     </Container>
   );
-
-
 }

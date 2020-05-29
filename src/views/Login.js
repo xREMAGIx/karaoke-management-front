@@ -21,7 +21,7 @@ import CloseIcon from "@material-ui/icons/Close";
 import Alert from "@material-ui/lab/Alert";
 import AlertTitle from "@material-ui/lab/AlertTitle";
 import Snackbar from "@material-ui/core/Snackbar";
-import { Redirect } from "react-router-dom"
+import { Redirect } from "react-router-dom";
 
 function Copyright() {
   return (
@@ -75,18 +75,16 @@ export default function SignIn() {
   const { username, password } = formData;
 
   useEffect(() => {
-
     if (history.location.state === 200) setSuccessOpen(true);
   }, []);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   useEffect(() => {
-    console.log(users)
-    console.log("dit me may")
-    if (users.isAuthenticated == true) {
-      setIsAuthenticated(true)
+    if (users.isAuthenticated === true) {
+      setIsAuthenticated(true);
     }
-  }, [users])
+  }, [users]);
+
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -107,20 +105,20 @@ export default function SignIn() {
       setErrorMessage("Please fill out all required field");
     } else {
       dispatch(userActions.login(formData));
-      if (!users.user && users.error) {
-        console.log(users.error)
-        setErrorOpen(true);
-        setErrorMessage("Wrong email or password!");
-      }
     }
   };
 
-  if (isAuthenticated) {
-    return <Redirect to="/"></Redirect>
-  }
-  else {
-    return (
+  useEffect(() => {
+    if (users && users.error && typeof users.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(users.error);
+    }
+  }, [users, users.error]);
 
+  if (isAuthenticated) {
+    return <Redirect to="/"></Redirect>;
+  } else {
+    return (
       <React.Fragment>
         <Snackbar
           open={successOpen}
@@ -129,7 +127,7 @@ export default function SignIn() {
         >
           <Alert onClose={handleClose} severity="success">
             Register successful!
-        </Alert>
+          </Alert>
         </Snackbar>
         <Container component="main" maxWidth="xs">
           <CssBaseline />
@@ -139,7 +137,7 @@ export default function SignIn() {
             </Avatar>
             <Typography component="h1" variant="h5">
               Sign in
-          </Typography>
+            </Typography>
             <Collapse className={classes.alertContainer} in={errorOpen}>
               <Alert
                 severity="error"
@@ -201,12 +199,12 @@ export default function SignIn() {
               onClick={() => onSubmit()}
             >
               Sign In
-          </Button>
+            </Button>
             <Grid container>
               <Grid item xs>
                 <Link href="#" variant="body2">
                   Forgot password?
-              </Link>
+                </Link>
               </Grid>
               <Grid item>
                 <Link href="/register" variant="body2">
@@ -222,5 +220,4 @@ export default function SignIn() {
       </React.Fragment>
     );
   }
-
 }

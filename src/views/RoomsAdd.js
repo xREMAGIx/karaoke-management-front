@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
@@ -11,8 +11,12 @@ import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
+import Collapse from "@material-ui/core/Collapse";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { roomActions } from "../actions";
 
 const useStyles = makeStyles((theme) => ({
@@ -48,8 +52,11 @@ export default function RoomAddModal() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
-  //   const [image, setImage] = React.useState("");
-  //const user = useSelector(state => state.authentication.user);
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
+  const rooms = useSelector((state) => state.rooms);
+
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
@@ -58,6 +65,13 @@ export default function RoomAddModal() {
   });
 
   const { roomId, price } = formData;
+
+  useEffect(() => {
+    if (rooms.error && typeof rooms.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(rooms.error);
+    } else handleClose();
+  }, [rooms.error]);
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -71,7 +85,7 @@ export default function RoomAddModal() {
     setOpen(false);
   };
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     dispatch(roomActions.add(formData));
   };
 
@@ -104,11 +118,33 @@ export default function RoomAddModal() {
               <Typography variant="h4" gutterBottom>
                 Add new Room
               </Typography>
+
+              <Collapse className={classes.alertContainer} in={errorOpen}>
+                <Alert
+                  severity="error"
+                  action={
+                    <IconButton
+                      aria-label="close"
+                      color="inherit"
+                      size="small"
+                      onClick={() => {
+                        setErrorOpen(false);
+                      }}
+                    >
+                      <CloseIcon fontSize="inherit" />
+                    </IconButton>
+                  }
+                >
+                  <AlertTitle>Error</AlertTitle>
+                  {errorMessage}
+                </Alert>
+              </Collapse>
+
               <TextField
                 fullWidth
                 style={{ marginTop: "10px" }}
                 label="Room ID"
-                id="outlined-name"
+                id="outlined-id"
                 variant="outlined"
                 name="roomId"
                 value={roomId}
@@ -119,24 +155,13 @@ export default function RoomAddModal() {
                 fullWidth
                 style={{ marginTop: "10px" }}
                 label="Price"
-                id="outlined-name"
+                id="outlined-price"
                 variant="outlined"
                 name="price"
                 value={price}
                 onChange={(e) => onChange(e)}
                 onKeyPress={(e) => keyPressed(e)}
               />
-              {/* <Autocomplete
-                options={statusOption}
-                onChange={(value) => handleStatusSelected(value)}
-                // value={
-                //   workingTimeOption[statusToIndex(schedule.workingTime)]
-                // }
-                getOptionLabel={(option) => option.title}
-                renderInput={(params) => (
-                  <TextField {...params} label="Status" variant="outlined" />
-                )}
-              /> */}
               <Grid
                 style={{ marginTop: "10px" }}
                 container

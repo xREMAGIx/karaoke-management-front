@@ -14,7 +14,6 @@ async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
-  console.log(url);
   const params = url === null ? `/api/products` : url;
 
   return await axios.get(params, requestConfig).then(handleResponse);
@@ -144,27 +143,22 @@ async function update(id, product, image, delImage) {
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
-async function _delete(id) {
+async function _delete(ids) {
   const requestConfig = {
     // headers: authHeader()
   };
 
-  return await axios
-    .delete(`/api/products/${id}`, requestConfig)
-    .then(handleResponse);
+  const promises = await ids.map((id) => {
+    return axios.delete(`/api/products/${id}`, requestConfig);
+  });
+  return Promise.all(promises).then(handleResponse);
 }
 
 function handleResponse(response) {
   let data;
   data = response.data;
 
-  if (response.status === 404) {
-    // if (response.status === 401) {
-    //   // auto logout if 401 response returned from api
-    //   //logout();
-    //   location.reload(true);
-    // }
-
+  if (response.status > 400) {
     const error = (data && data.message) || response.statusText;
     return Promise.reject(error);
   }

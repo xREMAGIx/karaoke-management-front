@@ -10,6 +10,12 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import FormControl from "@material-ui/core/FormControl";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
+
 import { Link } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -53,6 +59,9 @@ export default function ProductEdit(props) {
     images: [],
   });
 
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
   const products = useSelector((state) => state.products);
   //const user = useSelector(state => state.authentication.user);
   const dispatch = useDispatch();
@@ -72,8 +81,11 @@ export default function ProductEdit(props) {
   }, [products.item]);
 
   useEffect(() => {
-    console.log(formData);
-  }, [formData]);
+    if (products.error && typeof products.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(products.error);
+    }
+  }, [products.error]);
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -90,6 +102,26 @@ export default function ProductEdit(props) {
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.container}>
+            <Collapse className={classes.alertContainer} in={errorOpen}>
+              <Alert
+                severity="error"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setErrorOpen(false);
+                    }}
+                  >
+                    <CloseIcon fontSize="inherit" />
+                  </IconButton>
+                }
+              >
+                <AlertTitle>Error</AlertTitle>
+                {errorMessage}
+              </Alert>
+            </Collapse>
             {!formData ? (
               <React.Fragment>
                 <Grid
@@ -158,6 +190,7 @@ export default function ProductEdit(props) {
                       id="outlined-sku"
                       variant="outlined"
                       name="sku"
+                      //defaultValue={sku || ""}
                       value={sku}
                       onChange={(e) => onChange(e)}
                     />
@@ -186,7 +219,7 @@ export default function ProductEdit(props) {
                       <OutlinedInput
                         id="outlined-adornment-price"
                         name="price"
-                        value={price}
+                        value={price || 0}
                         onChange={(e) => onChange(e)}
                         startAdornment={
                           <InputAdornment position="start">$</InputAdornment>
@@ -202,7 +235,7 @@ export default function ProductEdit(props) {
                       id="outlined-stock"
                       variant="outlined"
                       name="stock"
-                      value={stock}
+                      value={stock || 0}
                       onChange={(e) => onChange(e)}
                     />
                   </Grid>

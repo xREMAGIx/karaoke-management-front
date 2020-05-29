@@ -59,14 +59,14 @@ async function update(id, schedule) {
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
-async function _delete(id) {
+async function _delete(ids) {
   const requestConfig = {
     // headers: authHeader()
   };
-
-  return await axios
-    .delete(`/api/schedules/${id}`, requestConfig)
-    .then(handleResponse);
+  const promises = await ids.map((id) => {
+    return axios.delete(`/api/schedules/${id}`, requestConfig);
+  });
+  return Promise.all(promises).then(handleResponse);
 }
 
 function handleResponse(response) {

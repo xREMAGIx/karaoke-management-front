@@ -18,7 +18,17 @@ function getAll(url) {
       (schedules) => {
         dispatch(success(schedules));
       },
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -38,7 +48,17 @@ function getById(id) {
     dispatch(request(id));
     await scheduleService.getById(id).then(
       (schedules) => dispatch(success(schedules)),
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -62,8 +82,15 @@ function add(schedule) {
         history.push({ pathname: "/schedules", state: 201 });
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -85,12 +112,19 @@ function update(id, schedule) {
     await scheduleService.update(id, schedule).then(
       (id) => {
         dispatch(success(id));
-        window.location.reload();
+
         //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -111,12 +145,22 @@ function _delete(id) {
   return async (dispatch) => {
     dispatch(request(id));
     await scheduleService.delete(id).then(
-      (id) => {
+      async (id) => {
         dispatch(success(id));
         history.replace({ pathname: "/schedules", state: 203 });
-        window.location.reload();
+        await dispatch(getAll());
       },
-      (error) => dispatch(failure(id, error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 

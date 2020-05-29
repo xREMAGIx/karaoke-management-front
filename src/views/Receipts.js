@@ -4,6 +4,7 @@ import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { receiptActions, roomActions } from "../actions";
 import { history } from "../store";
+import { Link } from "react-router-dom";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -26,13 +27,19 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import SearchIcon from "@material-ui/icons/Search";
 import Skeleton from "@material-ui/lab/Skeleton";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
-import { Link } from "react-router-dom";
 import CreateIcon from "@material-ui/icons/Create";
 import TextField from "@material-ui/core/TextField";
 import Pagination from "@material-ui/lab/Pagination";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -227,15 +234,57 @@ const useToolbarStyles = makeStyles((theme) => ({
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
-  //const user = useSelector(state => state.authentication.user);
+
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
+  const receipts = useSelector((state) => state.receipts);
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
     dispatch(receiptActions.delete(id));
+    props.setSelectedIndex([]);
+    handleDeleteClose();
+  };
+
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
   };
 
   return (
     <React.Fragment>
+      {/* Delete dialog */}
+      <Dialog
+        open={deleteOpen}
+        onClose={handleDeleteClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to delete?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Delete {numSelected} item(s)?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose} color="secondary">
+            Disagree
+          </Button>
+          <Button
+            onClick={() => onDelete(selectedIndex)}
+            color="primary"
+            autoFocus
+          >
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Toolbar */}
       <Toolbar
         className={clsx(classes.root, {
           [classes.highlight]: numSelected > 0,
@@ -259,23 +308,24 @@ const EnhancedTableToolbar = (props) => {
           <Grid container direction="row" justify="flex-end" spacing={1}>
             {numSelected < 2 ? (
               <Grid item>
-                <Tooltip title="Modify">
-                  <IconButton
-                    component={Link}
-                    to={"/receipts-edit/" + selectedIndex[0]}
-                    aria-label="modify"
-                  >
-                    <CreateIcon />
-                  </IconButton>
-                </Tooltip>
+                {receipts.items.find(
+                  (element) => element.id === selectedIndex[0]
+                ).status === "checkedIn" ? (
+                  <Tooltip title="Modify">
+                    <IconButton
+                      component={Link}
+                      to={"/receipts-edit/" + selectedIndex[0]}
+                      aria-label="modify"
+                    >
+                      <CreateIcon />
+                    </IconButton>
+                  </Tooltip>
+                ) : null}
               </Grid>
             ) : null}
             <Grid item>
               <Tooltip title="Delete">
-                <IconButton
-                  aria-label="delete"
-                  onClick={() => onDelete(selectedIndex[0])}
-                >
+                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
@@ -361,15 +411,26 @@ const useStyles = makeStyles((theme) => ({
   },
   checkIn: {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: 0,
       color: "#f5b942",
+    },
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.action.focus,
     },
   },
   checkOut: {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: 0,
       color: "#259c53",
     },
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.action.focus,
+    },
+  },
+  linearLoading: {
+    color: theme.palette.primary.main,
+    marginBottom: theme.spacing(2),
+    height: 10,
   },
 }));
 
@@ -406,9 +467,8 @@ export default function Receipts(props) {
 
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const [openAlert1, setOpenAlert1] = React.useState(false);
-  const [openAlert2, setOpenAlert2] = React.useState(false);
-  const [openAlert3, setOpenAlert3] = React.useState(false);
+  const [openAlert, setOpenAlert] = React.useState(false);
+  const [openAlertMessage, setOpenAlertMessage] = React.useState("");
 
   const receipts = useSelector((state) => state.receipts);
   const rooms = useSelector((state) => state.rooms);
@@ -417,9 +477,22 @@ export default function Receipts(props) {
   useEffect(() => {
     dispatch(roomActions.getAllNonPagination());
     dispatch(receiptActions.getAll(`api/payments?ordering=-created_at`));
-    if (history.location.state === 201) setOpenAlert1(true);
-    if (history.location.state === 202) setOpenAlert2(true);
-    if (history.location.state === 203) setOpenAlert3(true);
+    switch (history.location.state) {
+      case 201:
+        setOpenAlert(true);
+        setOpenAlertMessage("Add successful!");
+        break;
+      case 202:
+        setOpenAlert(true);
+        setOpenAlertMessage("Update successful!");
+        break;
+      case 203:
+        setOpenAlert(true);
+        setOpenAlertMessage("Delete successful!");
+        break;
+      default:
+        break;
+    }
   }, [dispatch]);
 
   const handleRequestSort = (event, property) => {
@@ -524,27 +597,14 @@ export default function Receipts(props) {
     if (reason === "clickaway") {
       return;
     }
-
-    setOpenAlert1(false);
-    setOpenAlert2(false);
-    setOpenAlert3(false);
+    setOpenAlert(false);
   };
 
   return (
     <React.Fragment>
-      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleClose}>
         <Alert onClose={handleClose} severity="success">
-          Add successful!
-        </Alert>
-      </Snackbar>
-      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Update successful!
-        </Alert>
-      </Snackbar>
-      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Delete successful!
+          {openAlertMessage}
         </Alert>
       </Snackbar>
       <div className={classes.root}>
@@ -552,12 +612,16 @@ export default function Receipts(props) {
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
-            {!receipts.items ? (
-              <Skeleton variant="rect" width={"100%"} height={50} />
+            {!receipts.items || !rooms.items ? (
+              <React.Fragment>
+                <LinearProgress className={classes.linearLoading} />
+                <Skeleton variant="rect" width={"100%"} height={50} />
+              </React.Fragment>
             ) : (
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                setSelectedIndex={setSelected}
                 searchTerm={searchTerm}
                 searchAction={(e) => handleChange(e)}
                 keyPressed={keyPressedSearch}
@@ -570,7 +634,7 @@ export default function Receipts(props) {
                 aria-labelledby="tableTitle"
                 aria-label="enhanced table"
               >
-                {!receipts.items ? (
+                {!receipts.items || !rooms.items ? (
                   <Skeleton
                     component={"thead"}
                     variant="rect"
@@ -589,7 +653,7 @@ export default function Receipts(props) {
                     rowCount={receipts.items.length}
                   />
                 )}
-                {!receipts.items ? (
+                {!receipts.items || !rooms.items ? (
                   <Skeleton
                     component={"tbody"}
                     variant="rect"
@@ -632,11 +696,9 @@ export default function Receipts(props) {
                             scope="row"
                             padding="none"
                           >
-                            {rooms.items
+                            {rooms.items.find((x) => x.id === row.room)
                               ? rooms.items.find((x) => x.id === row.room)
-                                ? rooms.items.find((x) => x.id === row.room)
-                                    .roomId
-                                : row.room
+                                  .roomId
                               : row.room}
                           </TableCell>
                           <TableCell scope="row" padding="none">
@@ -646,7 +708,7 @@ export default function Receipts(props) {
                             {dateFormat(row.checkOutDate)}
                           </TableCell>
                           <TableCell scope="row" padding="none">
-                            {row.total}
+                            {Number(row.total).toFixed(2)}
                           </TableCell>
                           <TableCell scope="row" padding="none">
                             {row.status}

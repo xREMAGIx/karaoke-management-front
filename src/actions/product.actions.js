@@ -16,7 +16,17 @@ function getAll(url) {
     dispatch(request());
     await productService.getAll(url).then(
       (products) => dispatch(success(products)),
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -36,7 +46,17 @@ function getAllNonPagination() {
     dispatch(request());
     await productService.getAllNonPagination().then(
       (products) => dispatch(success(products)),
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -80,12 +100,17 @@ function add(product, image) {
       (product) => {
         dispatch(success(product));
         history.push({ pathname: "/products", state: 201 });
-        //window.location.reload();
-        //dispatch(alertActions.success("Add new product successful"));
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -108,12 +133,17 @@ function update(id, product, image, delImageId) {
       (product) => {
         dispatch(success(id));
         history.push({ pathname: "/products", state: 202 });
-        //window.location.reload();
-        //dispatch(alertActions.success("Add new product successful"));
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -134,12 +164,22 @@ function _delete(id) {
   return async (dispatch) => {
     dispatch(request(id));
     await productService.delete(id).then(
-      (id) => {
+      async (id) => {
         dispatch(success(id));
         history.replace({ pathname: "/products", state: 203 });
-        window.location.reload();
+        await dispatch(getAll());
       },
-      (error) => dispatch(failure(id, error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 

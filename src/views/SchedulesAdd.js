@@ -8,6 +8,11 @@ import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 
 import { useDispatch, useSelector } from "react-redux";
 import { userActions, scheduleActions } from "../actions";
@@ -35,6 +40,9 @@ const useStyles = makeStyles((theme) => ({
   gridList: {
     height: "60vh",
   },
+  marginBox: {
+    margin: theme.spacing(2),
+  },
 }));
 
 const weekdaysOption = [
@@ -60,16 +68,27 @@ export default function ScheduleAdd(props) {
 
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
+  const schedules = useSelector((state) => state.schedules);
 
   const [formData, setFormData] = React.useState({
-    weekDay: "",
-    workingTime: "",
+    weekDay: null,
+    workingTime: null,
     staff: null,
   });
+
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   useEffect(() => {
     dispatch(userActions.getAllNonPagination());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (schedules.error && typeof schedules.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(schedules.error);
+    }
+  }, [schedules.error]);
 
   const handleWeekdaySelected = (value) => {
     if (value) {
@@ -104,26 +123,45 @@ export default function ScheduleAdd(props) {
             <Typography variant="h4" gutterBottom>
               Add new Schedule
             </Typography>
-
+            {/* Error warning */}
+            <Collapse className={classes.alertContainer} in={errorOpen}>
+              <Alert
+                severity="error"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setErrorOpen(false);
+                    }}
+                  >
+                    <CloseIcon fontSize="inherit" />
+                  </IconButton>
+                }
+              >
+                <AlertTitle>Error</AlertTitle>
+                {errorMessage}
+              </Alert>
+            </Collapse>
+            {/* Content */}
             <Autocomplete
               id="weekDay-cb"
               className={classes.marginBox}
               options={weekdaysOption}
               getOptionLabel={(options) => options.title}
               onChange={(e, value) => handleWeekdaySelected(value)}
-              style={{ width: "100%" }}
               renderInput={(params) => (
                 <TextField {...params} label="Day of week" variant="outlined" />
               )}
             />
 
             <Autocomplete
-              id="weekDay-cb"
+              id="workingTime-cb"
               className={classes.marginBox}
               options={workingTimeOption}
               getOptionLabel={(options) => options.title}
               onChange={(e, value) => handleWorkingtimeSelected(value)}
-              style={{ width: "100%" }}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -134,6 +172,7 @@ export default function ScheduleAdd(props) {
             />
 
             <Autocomplete
+              className={classes.marginBox}
               options={users.items}
               onChange={(e, value) => handleUserSelected(value)}
               getOptionLabel={(option) => option.username}

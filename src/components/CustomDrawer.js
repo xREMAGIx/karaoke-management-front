@@ -9,12 +9,10 @@ import List from "@material-ui/core/List";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import IconButton from "@material-ui/core/IconButton";
-import Badge from "@material-ui/core/Badge";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import NotificationsIcon from "@material-ui/icons/Notifications";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import { mainListItems } from "./ListItemsDashboard";
 import { useDispatch } from "react-redux";
@@ -173,11 +171,7 @@ export default function CustomDrawer(props) {
             }
             label="Light"
           />
-          <IconButton color="inherit">
-            <Badge badgeContent={4} color="secondary">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
+
           <div>
             <IconButton
               aria-label="account of current user"
@@ -212,7 +206,6 @@ export default function CustomDrawer(props) {
               open={openProfile}
               onClose={handleClose}
             >
-              <MenuItem onClick={handleClose}>Message</MenuItem>
               <MenuItem onClick={() => logout()}>Logout</MenuItem>
             </Menu>
           </div>

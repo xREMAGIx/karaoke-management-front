@@ -86,6 +86,17 @@ export function schedules(state = initialState, action) {
     case scheduleConstants.GETBYID_ERROR:
       return { error: action.error };
 
+    case scheduleConstants.ADD_REQUEST:
+      return {
+        ...state,
+      };
+    case scheduleConstants.ADD_SUCCESS:
+      return {
+        ...state,
+        item: [],
+      };
+    case scheduleConstants.ADD_FAILURE:
+      return { error: action.error };
     default:
       return state;
   }

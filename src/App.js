@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import "./App.css";
-import PropTypes from "prop-types";
 import { Router, Route, Switch } from "react-router-dom";
 import { history } from "./store";
 import AdminRoute from "./components/AdminRoute";
@@ -169,10 +168,6 @@ const App = () => {
       </MuiPickersUtilsProvider>
     </ThemeProvider>
   );
-};
-
-App.propTypes = {
-  store: PropTypes.object.isRequired,
 };
 
 export default App;

@@ -33,6 +33,13 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -227,15 +234,64 @@ const useToolbarStyles = makeStyles((theme) => ({
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
-  //const user = useSelector(state => state.authentication.user);
+
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
     dispatch(userActions.delete(id));
+    props.setSelectedIndex([]);
+    handleDeleteClose();
+  };
+
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
   };
 
   return (
     <React.Fragment>
+      {" "}
+      {/* Delete dialog */}
+      <Dialog
+        open={deleteOpen}
+        onClose={handleDeleteClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to delete?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText
+            id="alert-dialog-description1"
+            variant="body1"
+            color="error"
+          >
+            Delete this will also delete all SCHEDULES related to this user.
+          </DialogContentText>
+          <DialogContentText id="alert-dialog-description2">
+            Delete {numSelected} item(s)?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose} color="secondary">
+            Disagree
+          </Button>
+          <Button
+            onClick={() => onDelete(selectedIndex)}
+            color="primary"
+            autoFocus
+          >
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Toolbar */}
       <Toolbar
         className={clsx(classes.root, {
           [classes.highlight]: numSelected > 0,
@@ -272,10 +328,7 @@ const EnhancedTableToolbar = (props) => {
             ) : null}
             <Grid item>
               <Tooltip title="Delete">
-                <IconButton
-                  aria-label="delete"
-                  onClick={() => onDelete(selectedIndex[0])}
-                >
+                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
@@ -359,6 +412,19 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: 50,
     maxWidth: 100,
   },
+  linearLoading: {
+    color: theme.palette.primary.main,
+    marginBottom: theme.spacing(2),
+    height: 10,
+  },
+  tableRow: {
+    "& .MuiTableCell-root": {
+      padding: 0,
+    },
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.action.focus,
+    },
+  },
 }));
 
 const sortOption = [
@@ -385,9 +451,8 @@ export default function Users(props) {
 
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const [openAlert1, setOpenAlert1] = React.useState(false);
-  const [openAlert2, setOpenAlert2] = React.useState(false);
-  const [openAlert3, setOpenAlert3] = React.useState(false);
+  const [openAlert, setOpenAlert] = React.useState(false);
+  const [openAlertMessage, setOpenAlertMessage] = React.useState("");
 
   const users = useSelector((state) => state.users);
   //const user = useSelector(state => state.authentication.user);
@@ -395,9 +460,22 @@ export default function Users(props) {
 
   useEffect(() => {
     dispatch(userActions.getAll());
-    if (history.location.state === 201) setOpenAlert1(true);
-    if (history.location.state === 202) setOpenAlert2(true);
-    if (history.location.state === 203) setOpenAlert3(true);
+    switch (history.location.state) {
+      case 201:
+        setOpenAlert(true);
+        setOpenAlertMessage("Add successful!");
+        break;
+      case 202:
+        setOpenAlert(true);
+        setOpenAlertMessage("Update successful!");
+        break;
+      case 203:
+        setOpenAlert(true);
+        setOpenAlertMessage("Delete successful!");
+        break;
+      default:
+        break;
+    }
   }, [dispatch]);
 
   const handleChange = (e) => {
@@ -493,39 +571,32 @@ export default function Users(props) {
       return;
     }
 
-    setOpenAlert1(false);
-    setOpenAlert2(false);
-    setOpenAlert3(false);
+    setOpenAlert(false);
   };
 
   return (
     <React.Fragment>
-      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleClose}>
         <Alert onClose={handleClose} severity="success">
-          Add successful!
+          {openAlertMessage}
         </Alert>
       </Snackbar>
-      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Update successful!
-        </Alert>
-      </Snackbar>
-      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Delete successful!
-        </Alert>
-      </Snackbar>
+
       <div className={classes.root}>
         <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
-            {!users.items ? (
-              <Skeleton variant="rect" width={"100%"} height={50} />
+            {users.loading ? (
+              <React.Fragment>
+                <LinearProgress className={classes.linearLoading} />
+                <Skeleton variant="rect" width={"100%"} height={50} />
+              </React.Fragment>
             ) : (
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                setSelectedIndex={setSelected}
                 searchTerm={searchTerm}
                 searchAction={(e) => handleChange(e)}
                 keyPressed={keyPressedSearch}
@@ -538,7 +609,7 @@ export default function Users(props) {
                 aria-labelledby="tableTitle"
                 aria-label="enhanced table"
               >
-                {!users.items ? (
+                {users.loading ? (
                   <Skeleton
                     component={"thead"}
                     variant="rect"
@@ -557,7 +628,7 @@ export default function Users(props) {
                     rowCount={users.items.length}
                   />
                 )}
-                {!users.items ? (
+                {users.loading ? (
                   <Skeleton
                     component={"tbody"}
                     variant="rect"
@@ -575,6 +646,7 @@ export default function Users(props) {
                         return (
                           <TableRow
                             hover
+                            className={classes.tableRow}
                             onClick={(event) => handleClick(event, row.id)}
                             role="checkbox"
                             aria-checked={isItemSelected}
@@ -582,7 +654,7 @@ export default function Users(props) {
                             key={row.id}
                             selected={isItemSelected}
                           >
-                            <TableCell>
+                            <TableCell className={classes.tableCell}>
                               <Checkbox
                                 checked={isItemSelected}
                                 inputProps={{ "aria-labelledby": labelId }}
@@ -593,19 +665,36 @@ export default function Users(props) {
                               id={labelId}
                               scope="row"
                               padding="none"
+                              className={classes.tableCell}
                             >
                               {row.username}
                             </TableCell>
-                            <TableCell scope="row" padding="none">
+                            <TableCell
+                              className={classes.tableCell}
+                              scope="row"
+                              padding="none"
+                            >
                               {row.email}
                             </TableCell>
-                            <TableCell scope="row" padding="none">
+                            <TableCell
+                              className={classes.tableCell}
+                              scope="row"
+                              padding="none"
+                            >
                               {row.salary}
                             </TableCell>
-                            <TableCell scope="row" padding="none">
+                            <TableCell
+                              className={classes.tableCell}
+                              scope="row"
+                              padding="none"
+                            >
                               {row.monthly_salary}
                             </TableCell>
-                            <TableCell scope="row" padding="none">
+                            <TableCell
+                              className={classes.tableCell}
+                              scope="row"
+                              padding="none"
+                            >
                               {dateFormat(row.created_at)}
                             </TableCell>
                           </TableRow>
@@ -621,7 +710,7 @@ export default function Users(props) {
                 )}
               </Table>
             </TableContainer>
-            {!users.items ? (
+            {users.loading ? (
               <Skeleton
                 variant="rect"
                 width={400}

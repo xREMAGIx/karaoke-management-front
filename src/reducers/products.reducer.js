@@ -21,6 +21,7 @@ export function products(state = initialState, action) {
     case productConstants.GETALL_SUCCESS:
       return {
         ...state,
+        loading: false,
         next: action.products.next,
         previous: action.products.previous,
         items: action.products.results,
@@ -70,7 +71,7 @@ export function products(state = initialState, action) {
         item: [],
       };
     case productConstants.UPDATE_FAILURE:
-      return { error: action.error };
+      return { ...state, error: action.error };
 
     case productConstants.GETBYID_REQUEST:
       return {
@@ -80,11 +81,23 @@ export function products(state = initialState, action) {
     case productConstants.GETBYID_SUCCESS:
       return {
         ...state,
+        loading: false,
         item: action.products,
       };
     case productConstants.GETBYID_ERROR:
       return { error: action.error };
 
+    case productConstants.ADD_REQUEST:
+      return {
+        ...state,
+      };
+    case productConstants.ADD_SUCCESS:
+      return {
+        ...state,
+        item: [],
+      };
+    case productConstants.ADD_FAILURE:
+      return { error: action.error };
     default:
       return state;
   }

@@ -16,16 +16,15 @@ export const userActions = {
 };
 
 function getMe() {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request());
 
-    userService.getMe().then(
+    await userService.getMe().then(
       (user) => {
         dispatch(success(user));
       },
       (error) => {
         dispatch(failure(error));
-        //dispatch(alertActions.error(error.toString()));
       }
     );
   };
@@ -62,7 +61,15 @@ function login(user) {
         history.push({ pathname: "/", state: 200 });
       },
       (error) => {
-        dispatch(failure(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -105,14 +112,12 @@ function register(user) {
       },
       (error) => {
         if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0]
+          let errorkey = Object.keys(error.response.data)[0];
 
-          let errorValue = error.response.data[errorkey][0]
+          let errorValue = error.response.data[errorkey][0];
 
-          dispatch(failure(errorValue))
-        }
-        else {
-
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
           dispatch(failure(error.toString()));
         }
       }
@@ -138,10 +143,17 @@ function add(user) {
       (user) => {
         dispatch(success(user));
         history.push({ pathname: "/users", state: 201 });
-        //window.location.reload();
       },
       (error) => {
-        dispatch(failure(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -185,7 +197,17 @@ function getAllNonPagination() {
     dispatch(request());
     await userService.getAllNonPagination().then(
       (users) => dispatch(success(users)),
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -205,7 +227,17 @@ function getById(id) {
     dispatch(request(id));
     await userService.getById(id).then(
       (user) => dispatch(success(user)),
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -226,13 +258,19 @@ function update(id, user, image) {
     await userService.update(id, user, image).then(
       (id) => {
         dispatch(success(id));
-        //window.location.reload();
+
         history.push({ pathname: "/users", state: 202 });
-        //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -250,16 +288,26 @@ function update(id, user, image) {
 
 // prefixed function name with underscore because delete is a reserved word in javascript
 function _delete(id) {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request(id));
 
-    userService.delete(id).then(
-      (id) => {
+    await userService.delete(id).then(
+      async (id) => {
         dispatch(success(id));
         history.replace({ pathname: "/users", state: 203 });
-        window.location.reload();
+        await dispatch(getAll());
       },
-      (error) => dispatch(failure(id, error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 

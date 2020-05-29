@@ -1,6 +1,11 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { roomActions, receiptActions, productActions } from "../actions";
+import {
+  roomActions,
+  receiptActions,
+  productActions,
+  userActions,
+} from "../actions";
 
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/core/styles";
@@ -19,6 +24,8 @@ import Title from "../components/Title.js";
 import CustomDrawer from "../components/CustomDrawer";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Skeleton from "@material-ui/lab/Skeleton";
 import { history } from "../store";
 
 function dateFormat(date) {
@@ -99,17 +106,19 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
   },
   container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
+    paddingTop: theme.spacing(2),
   },
   paper: {
-    padding: theme.spacing(2),
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
+    paddingLeft: theme.spacing(5),
+    paddingRight: theme.spacing(6),
     display: "flex",
     overflow: "auto",
     flexDirection: "column",
   },
   fixedHeight: {
-    height: 240,
+    height: 300,
   },
   seeMore: {
     marginTop: theme.spacing(3),
@@ -121,6 +130,45 @@ const useStyles = makeStyles((theme) => ({
   depositContext: {
     flex: 1,
   },
+  linearLoading: {
+    marginTop: theme.spacing(1),
+    color: theme.palette.primary.main,
+    height: 10,
+  },
+
+  totalPaper: {
+    "& a": {
+      color: theme.palette.success.main,
+      textDecoration: "none",
+      "&:hover": {
+        color: theme.palette.text.primary,
+      },
+    },
+    marginBottom: theme.spacing(1),
+    "&:hover": { backgroundColor: theme.palette.success.main },
+  },
+  roomPaper: {
+    "& a": {
+      color: theme.palette.info.main,
+      textDecoration: "none",
+      "&:hover": {
+        color: theme.palette.text.primary,
+      },
+    },
+    marginBottom: theme.spacing(1),
+    "&:hover": { backgroundColor: theme.palette.info.main },
+  },
+  productPaper: {
+    "& a": {
+      color: theme.palette.warning.main,
+      textDecoration: "none",
+      "&:hover": {
+        color: theme.palette.text.primary,
+      },
+    },
+    marginBottom: theme.spacing(1),
+    "&:hover": { backgroundColor: theme.palette.warning.main },
+  },
 }));
 
 export default function Dashboard(props) {
@@ -129,8 +177,11 @@ export default function Dashboard(props) {
 
   const [open, setOpen] = React.useState(false);
 
+  let total = 0;
+
   const dispatch = useDispatch();
 
+  const users = useSelector((state) => state.users);
   const receipts = useSelector((state) => state.receipts);
   const rooms = useSelector((state) => state.rooms);
   const products = useSelector((state) => state.products);
@@ -140,6 +191,7 @@ export default function Dashboard(props) {
   }, []);
 
   useEffect(() => {
+    dispatch(userActions.getAllNonPagination());
     dispatch(roomActions.getAllNonPagination());
     dispatch(productActions.getAllNonPagination());
     dispatch(receiptActions.getAllNonPagination());
@@ -152,6 +204,13 @@ export default function Dashboard(props) {
 
     setOpen(false);
   };
+  if (receipts.items)
+    receipts.items
+      .filter(
+        (x) => new Date(x.checkOutDate).getDate() === new Date().getDate()
+      )
+
+      .forEach((element) => (total += element.total));
 
   return (
     <React.Fragment>
@@ -164,83 +223,135 @@ export default function Dashboard(props) {
         <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
-          <Container maxWidth="lg" className={classes.container}>
-            <Grid container spacing={3}>
-              {/* Chart */}
-              <Grid item xs={12} md={8} lg={9}>
-                <Paper className={fixedHeightPaper}>
-                  <Chart />
-                </Paper>
-              </Grid>
-              {/* Recent Deposits */}
-              <Grid item xs={12} md={4} lg={3}>
-                {rooms.items && products.items ? (
+          {!receipts.loading &&
+          !rooms.loading &&
+          !products.loading &&
+          !users.loading ? (
+            <Container maxWidth="lg" className={classes.container}>
+              <Grid container spacing={3}>
+                {/* Chart */}
+                <Grid item xs={12} md={8} lg={9}>
                   <Paper className={fixedHeightPaper}>
-                    <Title>Statictis</Title>
-                    <Typography component="p" variant="h6">
-                      Number of rooms: {rooms.items.length}
-                    </Typography>
-                    <Typography component="p" variant="h6" gutterBottom>
-                      Number of products: {products.items.length}
-                    </Typography>
-                    <Typography
-                      color="textSecondary"
-                      className={classes.depositContext}
-                    >
-                      on {new Date().getDate()}/{new Date().getMonth()}/
-                      {new Date().getFullYear()}
-                    </Typography>
+                    <Chart />
                   </Paper>
-                ) : null}
-              </Grid>
-              {/* Recent Orders */}
-              <Grid item xs={12}>
-                <Paper className={classes.paper}>
-                  {receipts.items ? (
+                </Grid>
+                {/* Statictis*/}
+                <Grid item xs={12} md={4} lg={3}>
+                  {rooms.items && products.items && users.items ? (
                     <React.Fragment>
-                      <Title>Recent Receipts</Title>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Room</TableCell>
-                            <TableCell>Check In</TableCell>
-                            <TableCell>Check Out</TableCell>
-                            <TableCell>Total</TableCell>
-                            <TableCell>Create At</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {receipts.items.slice(0, 5).map((row) => (
-                            <TableRow hover key={row.id}>
-                              <TableCell component="th" scope="row">
-                                {rooms.items && rooms.maxPage == 1
-                                  ? rooms.items.find((x) => x.id === row.room)
-                                    .roomId
-                                  : row.room}
-                              </TableCell>
-                              <TableCell scope="row">
-                                {dateFormat(row.checkInDate)}
-                              </TableCell>
-                              <TableCell scope="row">
-                                {dateFormat(row.checkOutDate)}
-                              </TableCell>
-                              <TableCell scope="row">{row.total}</TableCell>
-                              <TableCell scope="row">
-                                {dateFormat(row.checkOutDate)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      <div className={classes.seeMore}>
-                        <Link to="/receipts">See more receipts</Link>
-                      </div>
+                      <Paper className={classes.totalPaper}>
+                        <Link to="/users">
+                          <Typography component="p" variant="h3" align="center">
+                            {users.items.length}
+                          </Typography>
+                          <Typography component="p" variant="h6" align="center">
+                            Users
+                          </Typography>
+                        </Link>
+                      </Paper>
+
+                      <Paper className={classes.roomPaper}>
+                        <Link to="/rooms">
+                          <Typography component="p" variant="h3" align="center">
+                            {rooms.items.length}
+                          </Typography>
+                          <Typography component="p" variant="h6" align="center">
+                            Rooms
+                          </Typography>
+                        </Link>
+                      </Paper>
+
+                      <Paper className={classes.productPaper}>
+                        <Link to="/products">
+                          <Typography component="p" variant="h3" align="center">
+                            {products.items.length}
+                          </Typography>
+                          <Typography component="p" variant="h6" align="center">
+                            Products
+                          </Typography>
+                        </Link>
+                      </Paper>
+
+                      <Typography
+                        color="textSecondary"
+                        className={classes.depositContext}
+                      >
+                        on {new Date().getDate()}/{new Date().getMonth() + 1}/
+                        {new Date().getFullYear()}
+                      </Typography>
                     </React.Fragment>
                   ) : null}
-                </Paper>
+                </Grid>
+                {/* Recent Orders */}
+                <Grid item xs={12}>
+                  <Paper className={classes.paper}>
+                    {receipts.items ? (
+                      <React.Fragment>
+                        <Title>Recent Receipts</Title>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Room</TableCell>
+                              <TableCell>Check In</TableCell>
+                              <TableCell>Check Out</TableCell>
+                              <TableCell>Total</TableCell>
+                              <TableCell>Create At</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {receipts.items.slice(0, 5).map((row) => (
+                              <TableRow hover key={row.id}>
+                                <TableCell component="th" scope="row">
+                                  {rooms.items && rooms.maxPage === 1
+                                    ? rooms.items.find((x) => x.id === row.room)
+                                        .roomId
+                                    : row.room}
+                                </TableCell>
+                                <TableCell scope="row">
+                                  {dateFormat(row.checkInDate)}
+                                </TableCell>
+                                <TableCell scope="row">
+                                  {dateFormat(row.checkOutDate)}
+                                </TableCell>
+                                <TableCell scope="row">
+                                  {Number(row.total).toFixed(2)}
+                                </TableCell>
+                                <TableCell scope="row">
+                                  {dateFormat(row.checkOutDate)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        <div className={classes.seeMore}>
+                          <Link to="/receipts">See more receipts</Link>
+                        </div>
+                      </React.Fragment>
+                    ) : null}
+                  </Paper>
+                </Grid>
               </Grid>
-            </Grid>
-          </Container>
+            </Container>
+          ) : (
+            <React.Fragment>
+              <LinearProgress className={classes.linearLoading} />
+              <Grid
+                container
+                direction="row"
+                alignItems="flex-start"
+                spacing={2}
+              >
+                <Grid item xs={8}>
+                  <Skeleton height={300}></Skeleton>
+                </Grid>
+                <Grid item xs={4}>
+                  <Skeleton height={300}></Skeleton>
+                </Grid>
+              </Grid>
+
+              <Skeleton height={300}></Skeleton>
+            </React.Fragment>
+          )}
         </main>
       </div>
     </React.Fragment>

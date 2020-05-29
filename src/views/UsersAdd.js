@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
@@ -6,9 +6,15 @@ import Grid from "@material-ui/core/Grid";
 import CustomDrawer from "../components/CustomDrawer";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
+
 import { Link } from "react-router-dom";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { userActions } from "../actions";
 
@@ -42,6 +48,18 @@ export default function UserAdd(props) {
   //const user = useSelector(state => state.authentication.user);
   const dispatch = useDispatch();
 
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
+  const users = useSelector((state) => state.users);
+
+  useEffect(() => {
+    if (users.error && typeof users.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(users.error);
+    }
+  }, [users.error]);
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -74,6 +92,28 @@ export default function UserAdd(props) {
             <Typography variant="h4" gutterBottom>
               Add new User
             </Typography>
+            {/* Error warning */}
+            <Collapse className={classes.alertContainer} in={errorOpen}>
+              <Alert
+                severity="error"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setErrorOpen(false);
+                    }}
+                  >
+                    <CloseIcon fontSize="inherit" />
+                  </IconButton>
+                }
+              >
+                <AlertTitle>Error</AlertTitle>
+                {errorMessage}
+              </Alert>
+            </Collapse>
+            {/* Content */}
             <TextField
               fullWidth
               style={{ marginTop: "10px" }}
@@ -108,17 +148,6 @@ export default function UserAdd(props) {
               onChange={(e) => onChange(e)}
               onKeyPress={(e) => keyPressed(e)}
             />
-            {/* <TextField
-              fullWidth
-              style={{ marginTop: "10px" }}
-              label="Salary"
-              id="outlined-name"
-              variant="outlined"
-              name="salary"
-              value={salary}
-              onChange={(e) => onChange(e)}
-              onKeyPress={(e) => keyPressed(e)}
-            /> */}
             <Grid
               style={{ marginTop: "10px" }}
               container

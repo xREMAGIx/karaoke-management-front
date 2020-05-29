@@ -79,14 +79,23 @@ function add(receipt) {
       (receipt) => {
         dispatch(success(receipt));
         history.push({ pathname: "/receipts", state: 201 });
-        //window.location.reload();
-
-        //window.location.reload();
-        //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+          console.log(errorValue);
+          dispatch(
+            failure(
+              errorkey.toUpperCase() +
+                ": " +
+                errorValue[Object.getOwnPropertyNames(errorValue)]
+            )
+          );
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -113,8 +122,21 @@ function update(id, receipt) {
         //dispatch(alertActions.success("Add new post successful"));
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+          console.log(errorValue);
+          dispatch(
+            failure(
+              errorkey.toUpperCase() +
+                ": " +
+                errorValue[Object.getOwnPropertyNames(errorValue)]
+            )
+          );
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -135,12 +157,26 @@ function _delete(id) {
   return async (dispatch) => {
     dispatch(request(id));
     await receiptService.delete(id).then(
-      (id) => {
+      async (id) => {
         dispatch(success(id));
         history.replace({ pathname: "/receipts", state: 203 });
-        window.location.reload();
+        dispatch(requestGetAll());
+        await receiptService.getAll(`api/payments?ordering=-created_at`).then(
+          (receipts) => dispatch(successGetAll(receipts)),
+          (error) => dispatch(failureGetAll(error.toString()))
+        );
       },
-      (error) => dispatch(failure(id, error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -152,5 +188,14 @@ function _delete(id) {
   }
   function failure(id, error) {
     return { type: receiptConstants.DELETE_FAILURE, id, error };
+  }
+  function requestGetAll() {
+    return { type: receiptConstants.GETALL_REQUEST };
+  }
+  function successGetAll(receipts) {
+    return { type: receiptConstants.GETALL_SUCCESS, receipts };
+  }
+  function failureGetAll(error) {
+    return { type: receiptConstants.GETALL_FAILURE, error };
   }
 }

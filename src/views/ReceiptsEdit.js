@@ -8,6 +8,11 @@ import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Skeleton from "@material-ui/lab/Skeleton";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 
 import { DateTimePicker } from "@material-ui/pickers";
 
@@ -38,6 +43,10 @@ const useStyles = makeStyles((theme) => ({
   gridList: {
     height: "60vh",
   },
+  margin: {
+    marginTop: theme.spacing(4),
+    marginBottom: theme.spacing(4),
+  },
 }));
 
 const statusOption = [
@@ -53,14 +62,15 @@ export default function ReceiptEdit(props) {
   const receipts = useSelector((state) => state.receipts);
   const dispatch = useDispatch();
 
-  const [loading, setLoading] = React.useState(true);
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const [formData, setFormData] = useState({
     room: "",
     status: "",
   });
 
-  const { room, status } = formData;
+  const { status } = formData;
 
   const [newProducts, setNewProducts] = React.useState([]);
 
@@ -81,32 +91,33 @@ export default function ReceiptEdit(props) {
 
   useEffect(() => {
     //console.log(props.match.params.id);
-    dispatch(roomActions.getAllNonPagination());
-    dispatch(productActions.getAllNonPagination());
+
     dispatch(receiptActions.getById(props.match.params.id));
+
+    dispatch(productActions.getAllNonPagination());
   }, [dispatch, props.match.params.id]);
 
   useEffect(() => {
     setFormData({ ...receipts.item });
-
     //setOnImageChange({ ...formData.image });
     if (receipts.item !== undefined && receipts.item !== null) {
+      dispatch(roomActions.getById(receipts.item.room));
       if (receipts.item.products) setNewProducts([...receipts.item.products]);
-      setLoading((loading) => !loading);
     }
-  }, [receipts.item]);
+  }, [receipts.item, dispatch]);
+
+  useEffect(() => {
+    if (receipts.error && typeof receipts.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(receipts.error);
+    }
+  }, [receipts, receipts.error]);
 
   useEffect(() => {
     handleCheckInChange(new Date(formData.checkInDate));
     // if (formData.status === "checkedOut")
     //   handleCheckOutChange(new Date(formData.checkOutDate));
   }, [formData.status, formData.checkInDate, formData.checkOutDate]);
-
-  const handleRoomSelected = (value) => {
-    if (value) {
-      setFormData({ ...formData, room: value.id });
-    }
-  };
 
   const handleStatusSelected = (value) => {
     if (value) {
@@ -131,14 +142,6 @@ export default function ReceiptEdit(props) {
       });
     }
   };
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
-  // useEffect(() => {
-  //   console.log(newProducts);
-  // }, [newProducts]);
 
   const onDelete = (index) => {
     newProducts.splice(index, 1);
@@ -166,7 +169,7 @@ export default function ReceiptEdit(props) {
           checkInDate: selectedCheckIn,
         })
       );
-    else
+    else if (selectedCheckIn < selectedCheckOut)
       dispatch(
         receiptActions.update(props.match.params.id, {
           ...formData,
@@ -175,11 +178,11 @@ export default function ReceiptEdit(props) {
           checkOutDate: selectedCheckOut,
         })
       );
+    else {
+      setErrorOpen(true);
+      setErrorMessage("CheckIn time must before CheckOut time");
+    }
   };
-
-  //   const keyPressed = (e) => {
-  //     if (e.key === "Enter") onSubmit(e);
-  //   };
 
   return (
     <React.Fragment>
@@ -189,7 +192,7 @@ export default function ReceiptEdit(props) {
           <div className={classes.appBarSpacer} />
 
           <Container maxWidth="lg" className={classes.container}>
-            {loading ? (
+            {receipts.loading ? (
               <React.Fragment>
                 <Grid
                   container
@@ -209,10 +212,9 @@ export default function ReceiptEdit(props) {
                 </Grid>
 
                 <Grid
-                  xs={12}
                   style={{ marginTop: "30px" }}
                   container
-                //spacing={5}
+                  //spacing={5}
                 >
                   <Grid item xs={12} container justify="center">
                     <Skeleton variant="rect" width={200} height={45} />
@@ -237,121 +239,142 @@ export default function ReceiptEdit(props) {
                 </Grid>
               </React.Fragment>
             ) : (
-                <React.Fragment>
-                  <Typography variant="h4" gutterBottom>
-                    Receipt Edit
+              <React.Fragment>
+                <Typography variant="h4" gutterBottom>
+                  Receipt Edit
                 </Typography>
-                  <Autocomplete
-                    id="room-cb"
-                    options={rooms.items}
-                    value={
-                      rooms.items !== undefined
-                        ? rooms.items.find((element) => element.id === room)
-                        : ""
+                {/* Error warning */}
+                <Collapse className={classes.alertContainer} in={errorOpen}>
+                  <Alert
+                    severity="error"
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setErrorOpen(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
                     }
-                    getOptionLabel={(options) => options.roomId}
-                    onChange={(e, value) => handleRoomSelected(value)}
-                    style={{ width: "100%" }}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Room" variant="outlined" />
-                    )}
+                  >
+                    <AlertTitle>Error</AlertTitle>
+                    {errorMessage}
+                  </Alert>
+                </Collapse>
+                {/* Content */}
+                {rooms.item ? (
+                  <TextField
+                    disabled
+                    id="outlined-disabled"
+                    fullWidth
+                    label="Room"
+                    value={rooms.item.roomId || ""}
+                    variant="outlined"
                   />
-                  <Autocomplete
-                    id="status-cb"
-                    options={statusOption}
-                    value={statusOption[statusToIndex(status)]}
-                    getOptionLabel={(options) => options.title}
-                    onChange={(e, value) => handleStatusSelected(value)}
-                    style={{ width: "100%" }}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Status" variant="outlined" />
-                    )}
-                  />
+                ) : null}
+                <Autocomplete
+                  id="status-cb"
+                  className={classes.margin}
+                  options={statusOption}
+                  value={statusOption[statusToIndex(status)]}
+                  getOptionLabel={(options) => options.title}
+                  onChange={(e, value) => handleStatusSelected(value)}
+                  style={{ width: "100%" }}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Status" variant="outlined" />
+                  )}
+                />
 
-                  {formData.status ? (
-                    <React.Fragment>
+                {formData.status ? (
+                  <React.Fragment>
+                    <DateTimePicker
+                      className={classes.margin}
+                      value={selectedCheckIn}
+                      disablePast
+                      ampm={false}
+                      onChange={handleCheckInChange}
+                      label="Check In Time"
+                      showTodayButton
+                      disabled
+                    />
+                    {formData.status === "checkedOut" ? (
                       <DateTimePicker
-                        className={classes.marginBox}
-                        value={selectedCheckIn}
+                        className={classes.margin}
+                        value={selectedCheckOut}
                         disablePast
                         ampm={false}
-                        onChange={handleCheckInChange}
-                        label="Check In Time"
+                        onChange={handleCheckOutChange}
+                        label="Check Out Time"
                         showTodayButton
-                        disabled
                       />
-                      {formData.status === "checkedOut" ? (
-                        <DateTimePicker
-                          className={classes.marginBox}
-                          value={selectedCheckOut}
-                          disablePast
-                          ampm={false}
-                          onChange={handleCheckOutChange}
-                          label="Check Out Time"
-                          showTodayButton
-                        />
-                      ) : null}
-                    </React.Fragment>
-                  ) : null}
+                    ) : null}
+                  </React.Fragment>
+                ) : null}
 
-                  <Grid
-                    style={{ marginTop: "10px" }}
-                    container
-                    justify="center"
-                    spacing={5}
-                  >
-                    <Grid item>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={addNewProductsClick}
-                      >
-                        Edit Product(s)
+                <Grid
+                  style={{ marginTop: "10px" }}
+                  container
+                  justify="center"
+                  spacing={5}
+                >
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={addNewProductsClick}
+                    >
+                      Edit Product(s)
                     </Button>
-                    </Grid>
                   </Grid>
+                </Grid>
 
-                  <Grid container>
-                    {newProducts.length > 0 &&
-                      newProducts.map((product) => (
-                        <Grid
-                          key={newProducts.indexOf(product)}
-                          style={{ marginTop: "10px" }}
-                          item
-                          xs={12}
-                          container
-                          alignItems="center"
-                          spacing={3}
-                        >
-                          <Grid item xs={6}>
-                            <Autocomplete
-                              options={products.items}
-                              onChange={(e, value) =>
-                                handleProductsSelected(
-                                  value,
-                                  newProducts.indexOf(product)
-                                )
-                              }
-                              value={products && products.items &&
-                                product.productId !== "none"
+                <Grid container>
+                  {newProducts.length > 0 &&
+                    newProducts.map((product) => (
+                      <Grid
+                        key={newProducts.indexOf(product)}
+                        style={{ marginTop: "10px" }}
+                        item
+                        xs={12}
+                        container
+                        alignItems="center"
+                        spacing={3}
+                      >
+                        <Grid item xs={6}>
+                          <Autocomplete
+                            options={products.items}
+                            onChange={(e, value) =>
+                              handleProductsSelected(
+                                value,
+                                newProducts.indexOf(product)
+                              )
+                            }
+                            value={
+                              products &&
+                              products.items &&
+                              product.productId !== "none"
                                 ? products.items.find(
-                                  (element) =>
-                                    element.id === product.productId
-                                )
+                                    (element) =>
+                                      element.id === product.productId
+                                  )
                                 : null
-                              }
-                              getOptionLabel={(option) => option.productName}
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  label="Product"
-                                  variant="outlined"
-                                />
-                              )}
-                            />
-                          </Grid>
+                            }
+                            getOptionLabel={(option) => option.productName}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Product"
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+                        <Grid item xs={5}>
                           <TextField
-                            style={{ marginTop: "10px" }}
+                            fullWidth
                             label="Quantity"
                             id="outlined-quantity"
                             variant="outlined"
@@ -361,70 +384,48 @@ export default function ReceiptEdit(props) {
                             onChange={(e, value) =>
                               onQuantityChange(e, newProducts.indexOf(product))
                             }
-                          //   onKeyPress={(e) => keyPressed(e)}
+                            //   onKeyPress={(e) => keyPressed(e)}
                           />
-                          {/* <Grid item xs={5}>
-                      <Autocomplete
-                        options={workingTimeOption}
-                        onChange={(e, value) =>
-                          handleWorkingTimeSelected(
-                            value,
-                            newSchedules.indexOf(schedule)
-                          )
-                        }
-                        value={
-                          workingTimeOption[
-                            workingTimeToIndex(schedule.workingTime)
-                          ]
-                        }
-                        getOptionLabel={(option) => option.title}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Working Time"
-                            variant="outlined"
-                          />
-                        )}
-                      />
-                    </Grid> */}
-                          <Grid item xs={1}>
-                            <Button
-                              style={{ color: "#b51a02" }}
-                              variant="text"
-                              onClick={(e) =>
-                                onDelete(newProducts.indexOf(product))
-                              }
-                            >
-                              DEL
-                          </Button>
-                          </Grid>
                         </Grid>
-                      ))}
-                  </Grid>
 
-                  <Grid
-                    style={{ marginTop: "10px" }}
-                    container
-                    justify="center"
-                    spacing={5}
-                  >
-                    <Grid item>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={(e) => onSubmit(e)}
-                      >
-                        Update
+                        <Grid item xs={1}>
+                          <Button
+                            style={{ color: "#b51a02" }}
+                            variant="text"
+                            onClick={(e) =>
+                              onDelete(newProducts.indexOf(product))
+                            }
+                          >
+                            DEL
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    ))}
+                </Grid>
+
+                <Grid
+                  style={{ marginTop: "10px" }}
+                  container
+                  justify="center"
+                  spacing={5}
+                >
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={(e) => onSubmit(e)}
+                    >
+                      Update
                     </Button>
-                    </Grid>
-                    <Grid item>
-                      <Button component={Link} to="/receipts" variant="contained">
-                        Cancel
-                    </Button>
-                    </Grid>
                   </Grid>
-                </React.Fragment>
-              )}
+                  <Grid item>
+                    <Button component={Link} to="/receipts" variant="contained">
+                      Cancel
+                    </Button>
+                  </Grid>
+                </Grid>
+              </React.Fragment>
+            )}
           </Container>
         </main>
       </div>

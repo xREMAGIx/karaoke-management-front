@@ -19,7 +19,17 @@ function getAll(url) {
       (rooms) => {
         dispatch(success(rooms));
       },
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -34,12 +44,22 @@ function getAll(url) {
   }
 }
 
-function getAllNonPagination() {
+function getAllNonPagination(url) {
   return async (dispatch) => {
     dispatch(request());
-    await roomService.getAllNonPagination().then(
+    await roomService.getAllNonPagination(url).then(
       (rooms) => dispatch(success(rooms)),
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -59,7 +79,17 @@ function getById(id) {
     dispatch(request(id));
     await roomService.getById(id).then(
       (rooms) => dispatch(success(rooms)),
-      (error) => dispatch(failure(error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -78,16 +108,21 @@ function add(room) {
   return async (dispatch) => {
     dispatch(request(room));
     await roomService.add(room).then(
-      (room) => {
+      async (room) => {
         dispatch(success(room));
         history.replace({ pathname: "/rooms", state: 201 });
-        window.location.reload();
-        //window.location.reload();
-        //dispatch(alertActions.success("Add new post successful"));
+        await dispatch(getAll());
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -107,14 +142,21 @@ function update(id, room) {
   return async (dispatch) => {
     dispatch(request(id));
     await roomService.update(id, room).then(
-      (id) => {
+      async (id) => {
         dispatch(success(id));
         history.replace({ pathname: "/rooms", state: 202 });
-        window.location.reload();
+        await dispatch(getAll());
       },
       (error) => {
-        dispatch(failure(error.toString()));
-        //dispatch(alertActions.error(error.toString()));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -135,12 +177,22 @@ function _delete(id) {
   return async (dispatch) => {
     dispatch(request(id));
     await roomService.delete(id).then(
-      (id) => {
+      async (id) => {
         dispatch(success(id));
         history.replace({ pathname: "/rooms", state: 203 });
-        window.location.reload();
+        await dispatch(getAll());
       },
-      (error) => dispatch(failure(id, error.toString()))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 

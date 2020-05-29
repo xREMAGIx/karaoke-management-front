@@ -12,6 +12,10 @@ import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import Collapse from "@material-ui/core/Collapse";
+import CloseIcon from "@material-ui/icons/Close";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 
 import { useDispatch, useSelector } from "react-redux";
 import { roomActions } from "../actions";
@@ -46,15 +50,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const statusOption = [
-  { title: "None", value: "none" },
   { title: "Available", value: "available" },
   { title: "Unavailable", value: "notAvailable" },
-
 ];
 
 export default function RoomEditModal(props) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
+
+  const [errorOpen, setErrorOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const dispatch = useDispatch();
   const rooms = useSelector((state) => state.rooms);
@@ -67,19 +72,19 @@ export default function RoomEditModal(props) {
 
   const { roomId, price } = formData;
 
+  useEffect(() => {
+    if (rooms.error && typeof rooms.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(rooms.error);
+    } else {
+      handleClose();
+      setErrorOpen(false);
+    }
+  }, [rooms.error]);
+
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  //   const handleOnImageChange = (event) => {
-  //     if (event.target.files && event.target.files[0]) {
-  //       let images = [];
-  //       for (let i = 0; i < event.target.files.length; i++) {
-  //         images.push({ id: i, img: event.target.files[i] });
-  //       }
-  //       setImage(images);
-  //     }
-  //   };
 
   const handleOpen = () => {
     dispatch(roomActions.getById(props.id));
@@ -91,7 +96,6 @@ export default function RoomEditModal(props) {
   };
 
   const onSubmit = async () => {
-    console.log(formData)
     dispatch(roomActions.update(props.id, formData));
   };
 
@@ -101,31 +105,23 @@ export default function RoomEditModal(props) {
 
   useEffect(() => {
     setFormData({ ...rooms.item });
-    //setOnImageChange({ ...formData.image });
   }, [rooms.item]);
-
-  // useEffect(() => {
-  //   console.log(formData);
-  // }, [formData]);
 
   const statusToIndex = (status) => {
     switch (status) {
       case "available":
-        return 1;
+        return 0;
       case "notAvailable":
-        return 2;
+        return 1;
       default:
         return 0;
     }
   };
 
   const handleStatusSelected = (value) => {
-    console.log(value);
-
     if (value) {
       setFormData({ ...formData, status: value.value });
     }
-    console.log(formData)
   };
 
   return (
@@ -154,6 +150,28 @@ export default function RoomEditModal(props) {
                 <Typography variant="h4" gutterBottom>
                   Room edit
                 </Typography>
+                {/* Error warning */}
+                <Collapse className={classes.alertContainer} in={errorOpen}>
+                  <Alert
+                    severity="error"
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setErrorOpen(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
+                    }
+                  >
+                    <AlertTitle>Error</AlertTitle>
+                    {errorMessage}
+                  </Alert>
+                </Collapse>
+                {/* Content */}
                 <TextField
                   fullWidth
                   style={{ marginTop: "10px" }}
@@ -177,9 +195,14 @@ export default function RoomEditModal(props) {
                   onKeyPress={(e) => keyPressed(e)}
                 />
                 <Autocomplete
+                  style={{ marginTop: "10px" }}
                   options={statusOption}
                   onChange={(e, value) => handleStatusSelected(value)}
-                  value={statusOption[statusToIndex(rooms.item)]}
+                  value={
+                    rooms.item
+                      ? statusOption[statusToIndex(rooms.item.status)]
+                      : ""
+                  }
                   getOptionLabel={(option) => option.title}
                   renderInput={(params) => (
                     <TextField {...params} label="Status" variant="outlined" />

@@ -4,6 +4,8 @@ import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { roomActions } from "../actions";
 import { history } from "../store";
+import RoomAddModal from "./RoomsAdd";
+import RoomEditModal from "./RoomsEdit";
 
 import PropTypes from "prop-types";
 import clsx from "clsx";
@@ -30,8 +32,13 @@ import Skeleton from "@material-ui/lab/Skeleton";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
-import RoomAddModal from "./RoomsAdd";
-import RoomEditModal from "./RoomsEdit";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -220,15 +227,63 @@ const useToolbarStyles = makeStyles((theme) => ({
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
-  //const room = useSelector(state => state.authentication.room);
+
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
     dispatch(roomActions.delete(id));
+    props.setSelectedIndex([]);
+    handleDeleteClose();
+  };
+
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
   };
 
   return (
     <React.Fragment>
+      {/* Delete dialog */}
+      <Dialog
+        open={deleteOpen}
+        onClose={handleDeleteClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to delete?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText
+            id="alert-dialog-description1"
+            variant="body1"
+            color="error"
+          >
+            Delete this will also delete all RECEIPTS related to this room.
+          </DialogContentText>
+          <DialogContentText id="alert-dialog-description2">
+            Delete {numSelected} item(s)?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose} color="secondary">
+            Disagree
+          </Button>
+          <Button
+            onClick={() => onDelete(selectedIndex)}
+            color="primary"
+            autoFocus
+          >
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Toolbar */}
       <Toolbar
         className={clsx(classes.root, {
           [classes.highlight]: numSelected > 0,
@@ -257,10 +312,7 @@ const EnhancedTableToolbar = (props) => {
             ) : null}
             <Grid item>
               <Tooltip title="Delete">
-                <IconButton
-                  aria-label="delete"
-                  onClick={() => onDelete(selectedIndex[0])}
-                >
+                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
@@ -342,15 +394,26 @@ const useStyles = makeStyles((theme) => ({
   },
   available: {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: 0,
       color: theme.palette.success.main,
+    },
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.action.focus,
     },
   },
   notAvailable: {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: 0,
       color: theme.palette.error.main,
     },
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.action.focus,
+    },
+  },
+  linearLoading: {
+    color: theme.palette.primary.main,
+    marginBottom: theme.spacing(2),
+    height: 10,
   },
 }));
 
@@ -386,9 +449,8 @@ export default function Rooms(props) {
 
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const [openAlert1, setOpenAlert1] = React.useState(false);
-  const [openAlert2, setOpenAlert2] = React.useState(false);
-  const [openAlert3, setOpenAlert3] = React.useState(false);
+  const [openAlert, setOpenAlert] = React.useState(false);
+  const [openAlertMessage, setOpenAlertMessage] = React.useState("");
 
   const rooms = useSelector((state) => state.rooms);
   //const room = useSelector(state => state.authentication.room);
@@ -396,9 +458,22 @@ export default function Rooms(props) {
 
   useEffect(() => {
     dispatch(roomActions.getAll());
-    if (history.location.state === 201) setOpenAlert1(true);
-    if (history.location.state === 202) setOpenAlert2(true);
-    if (history.location.state === 203) setOpenAlert3(true);
+    switch (history.location.state) {
+      case 201:
+        setOpenAlert(true);
+        setOpenAlertMessage("Add successful!");
+        break;
+      case 202:
+        setOpenAlert(true);
+        setOpenAlertMessage("Update successful!");
+        break;
+      case 203:
+        setOpenAlert(true);
+        setOpenAlertMessage("Delete successful!");
+        break;
+      default:
+        break;
+    }
   }, [dispatch]);
 
   const handleRequestSort = (event, property) => {
@@ -507,39 +582,32 @@ export default function Rooms(props) {
       return;
     }
 
-    setOpenAlert1(false);
-    setOpenAlert2(false);
-    setOpenAlert3(false);
+    setOpenAlert(false);
   };
 
   return (
     <React.Fragment>
-      <Snackbar open={openAlert1} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleClose}>
         <Alert onClose={handleClose} severity="success">
-          Add successful!
+          {openAlertMessage}
         </Alert>
       </Snackbar>
-      <Snackbar open={openAlert2} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Update successful!
-        </Alert>
-      </Snackbar>
-      <Snackbar open={openAlert3} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success">
-          Delete successful!
-        </Alert>
-      </Snackbar>
+
       <div className={classes.root}>
         <CustomDrawer light={props.light} onToggleTheme={props.toggleTheme} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
             {!rooms.items ? (
-              <Skeleton variant="rect" width={"100%"} height={50} />
+              <React.Fragment>
+                <LinearProgress className={classes.linearLoading} />
+                <Skeleton variant="rect" width={"100%"} height={50} />
+              </React.Fragment>
             ) : (
               <EnhancedTableToolbar
                 numSelected={selected.length}
                 selectedIndex={selected}
+                setSelectedIndex={setSelected}
                 searchTerm={searchTerm}
                 searchAction={(e) => handleChange(e)}
                 keyPressed={keyPressedSearch}
