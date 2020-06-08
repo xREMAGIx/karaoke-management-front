@@ -125,6 +125,19 @@ function EnhancedTableHead(props) {
     onRequestSort(event, property);
   };
 
+  const users = useSelector((state) => state.users);
+
+  let filterHeadCells;
+
+  if (!users.user.is_staff)
+    filterHeadCells = [
+      ...headCells.filter(
+        (headCell) =>
+          headCell.id !== "salary" && headCell.id !== "monthly_salary"
+      ),
+    ];
+  else filterHeadCells = [...headCells];
+
   return (
     <TableHead>
       <TableRow>
@@ -136,27 +149,32 @@ function EnhancedTableHead(props) {
             inputProps={{ "aria-label": "select all " }}
           />
         </TableCell>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.numeric ? "right" : "left"}
-            padding={headCell.disablePadding ? "none" : "default"}
-            sortDirection={orderBy === headCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : "asc"}
-              onClick={createSortHandler(headCell.id)}
+
+        <React.Fragment>
+          {filterHeadCells.map((headCell) => (
+            <TableCell
+              key={headCell.id}
+              align={headCell.numeric ? "right" : "left"}
+              padding={headCell.disablePadding ? "none" : "default"}
+              sortDirection={orderBy === headCell.id ? order : false}
             >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <span className={classes.visuallyHidden}>
-                  {order === "desc" ? "sorted descending" : "sorted ascending"}
-                </span>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : "asc"}
+                onClick={createSortHandler(headCell.id)}
+              >
+                {headCell.label}
+                {orderBy === headCell.id ? (
+                  <span className={classes.visuallyHidden}>
+                    {order === "desc"
+                      ? "sorted descending"
+                      : "sorted ascending"}
+                  </span>
+                ) : null}
+              </TableSortLabel>
+            </TableCell>
+          ))}
+        </React.Fragment>
       </TableRow>
     </TableHead>
   );
@@ -235,6 +253,7 @@ const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
 
+  const users = useSelector((state) => state.users);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
   const dispatch = useDispatch();
@@ -255,7 +274,6 @@ const EnhancedTableToolbar = (props) => {
 
   return (
     <React.Fragment>
-      {" "}
       {/* Delete dialog */}
       <Dialog
         open={deleteOpen}
@@ -292,6 +310,7 @@ const EnhancedTableToolbar = (props) => {
         </DialogActions>
       </Dialog>
       {/* Toolbar */}
+
       <Toolbar
         className={clsx(classes.root, {
           [classes.highlight]: numSelected > 0,
@@ -312,28 +331,32 @@ const EnhancedTableToolbar = (props) => {
         )}
 
         {numSelected > 0 ? (
-          <Grid container direction="row" justify="flex-end" spacing={1}>
-            {numSelected < 2 ? (
-              <Grid item>
-                <Tooltip title="Modify">
-                  <IconButton
-                    component={Link}
-                    to={"/users-edit/" + selectedIndex[0]}
-                    aria-label="modify"
-                  >
-                    <CreateIcon />
-                  </IconButton>
-                </Tooltip>
+          <React.Fragment>
+            {users.user.is_staff ? (
+              <Grid container direction="row" justify="flex-end" spacing={1}>
+                {numSelected < 2 ? (
+                  <Grid item>
+                    <Tooltip title="Modify">
+                      <IconButton
+                        component={Link}
+                        to={"/users-edit/" + selectedIndex[0]}
+                        aria-label="modify"
+                      >
+                        <CreateIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Grid>
+                ) : null}
+                <Grid item>
+                  <Tooltip title="Delete">
+                    <IconButton aria-label="delete" onClick={handleDeleteOpen}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Grid>
               </Grid>
             ) : null}
-            <Grid item>
-              <Tooltip title="Delete">
-                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-          </Grid>
+          </React.Fragment>
         ) : (
           <Grid
             container
@@ -360,11 +383,13 @@ const EnhancedTableToolbar = (props) => {
               </div>
             </Grid>
             <Grid item>
-              <Tooltip title="Add new">
-                <IconButton component={Link} to="/users-add">
-                  <AddCircleIcon />
-                </IconButton>
-              </Tooltip>
+              {users.user.is_staff ? (
+                <Tooltip title="Add new">
+                  <IconButton component={Link} to="/users-add">
+                    <AddCircleIcon />
+                  </IconButton>
+                </Tooltip>
+              ) : null}
             </Grid>
           </Grid>
         )}
@@ -460,7 +485,7 @@ export default function Users(props) {
 
   useEffect(() => {
     dispatch(userActions.getMe());
-    if (users.user.is_staff) dispatch(userActions.getAll());
+    dispatch(userActions.getAll());
     switch (history.location.state) {
       case 201:
         setOpenAlert(true);
@@ -477,7 +502,7 @@ export default function Users(props) {
       default:
         break;
     }
-  }, [dispatch, users.user.is_staff]);
+  }, [dispatch]);
 
   const handleChange = (e) => {
     setSearchTerm(e.target.value);
@@ -588,197 +613,197 @@ export default function Users(props) {
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
-            {users.user.is_staff ? (
-              <React.Fragment>
-                {users.loading ? (
-                  <React.Fragment>
-                    <LinearProgress className={classes.linearLoading} />
-                    <Skeleton variant="rect" width={"100%"} height={50} />
-                  </React.Fragment>
-                ) : (
-                  <EnhancedTableToolbar
-                    numSelected={selected.length}
-                    selectedIndex={selected}
-                    setSelectedIndex={setSelected}
-                    searchTerm={searchTerm}
-                    searchAction={(e) => handleChange(e)}
-                    keyPressed={keyPressedSearch}
-                  />
-                )}
-                <TableContainer className={classes.tableContainer}>
-                  <Table
-                    stickyHeader
-                    className={classes.table}
-                    aria-labelledby="tableTitle"
-                    aria-label="enhanced table"
-                  >
-                    {users.loading ? (
-                      <Skeleton
-                        component={"thead"}
-                        variant="rect"
-                        width={"100%"}
-                        height={40}
-                        style={{ marginTop: "10px" }}
-                      />
-                    ) : (
-                      <EnhancedTableHead
-                        classes={classes}
-                        numSelected={selected.length}
-                        order={order}
-                        orderBy={orderBy}
-                        onSelectAllClick={handleSelectAllClick}
-                        onRequestSort={handleRequestSort}
-                        rowCount={users.items.length}
-                      />
-                    )}
-                    {users.loading ? (
-                      <Skeleton
-                        component={"tbody"}
-                        variant="rect"
-                        width={"100%"}
-                        height={100}
-                        style={{ marginTop: "10px" }}
-                      />
-                    ) : (
-                      <TableBody>
-                        {stableSort(
-                          users.items,
-                          getComparator(order, orderBy)
-                        ).map((row, index) => {
-                          const isItemSelected = isSelected(row.id);
-                          const labelId = `enhanced-table-checkbox-${index}`;
-
-                          return (
-                            <TableRow
-                              hover
-                              className={classes.tableRow}
-                              onClick={(event) => handleClick(event, row.id)}
-                              role="checkbox"
-                              aria-checked={isItemSelected}
-                              tabIndex={-1}
-                              key={row.id}
-                              selected={isItemSelected}
-                            >
-                              <TableCell className={classes.tableCell}>
-                                <Checkbox
-                                  checked={isItemSelected}
-                                  inputProps={{ "aria-labelledby": labelId }}
-                                />
-                              </TableCell>
-                              <TableCell
-                                component="th"
-                                id={labelId}
-                                scope="row"
-                                padding="none"
-                                className={classes.tableCell}
-                              >
-                                {row.username}
-                              </TableCell>
-                              <TableCell
-                                className={classes.tableCell}
-                                scope="row"
-                                padding="none"
-                              >
-                                {row.email}
-                              </TableCell>
-                              <TableCell
-                                className={classes.tableCell}
-                                scope="row"
-                                padding="none"
-                              >
-                                {row.salary}
-                              </TableCell>
-                              <TableCell
-                                className={classes.tableCell}
-                                scope="row"
-                                padding="none"
-                              >
-                                {row.monthly_salary}
-                              </TableCell>
-                              <TableCell
-                                className={classes.tableCell}
-                                scope="row"
-                                padding="none"
-                              >
-                                {dateFormat(row.created_at)}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                        {emptyRows > 0 && (
-                          <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={6} />
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    )}
-                  </Table>
-                </TableContainer>
-                {users.loading ? (
-                  <Skeleton
-                    variant="rect"
-                    width={400}
-                    height={50}
-                    style={{ marginLeft: "auto", marginTop: "10px" }}
-                  />
-                ) : (
-                  <Grid
-                    container
-                    direction="column"
-                    alignItems="flex-end"
-                    spacing={2}
-                  >
-                    <Grid
-                      item
-                      container
+            <React.Fragment>
+              {users.loading ? (
+                <React.Fragment>
+                  <LinearProgress className={classes.linearLoading} />
+                  <Skeleton variant="rect" width={"100%"} height={50} />
+                </React.Fragment>
+              ) : (
+                <EnhancedTableToolbar
+                  numSelected={selected.length}
+                  selectedIndex={selected}
+                  setSelectedIndex={setSelected}
+                  searchTerm={searchTerm}
+                  searchAction={(e) => handleChange(e)}
+                  keyPressed={keyPressedSearch}
+                />
+              )}
+              <TableContainer className={classes.tableContainer}>
+                <Table
+                  stickyHeader
+                  className={classes.table}
+                  aria-labelledby="tableTitle"
+                  aria-label="enhanced table"
+                >
+                  {users.loading ? (
+                    <Skeleton
+                      component={"thead"}
+                      variant="rect"
+                      width={"100%"}
+                      height={40}
                       style={{ marginTop: "10px" }}
-                      justify="flex-end"
-                      alignItems="center"
-                    >
-                      <Grid item>
-                        <Pagination
-                          color="primary"
-                          count={users.maxPage}
-                          page={pageValue}
-                          onChange={handlePageChange}
-                        />
-                      </Grid>
-                      <Grid item>
-                        <TextField
-                          style={{ width: "100px" }}
-                          label="page"
-                          id="outlined-page"
-                          variant="outlined"
-                          type="number"
-                          onChange={(e) => onChange(e)}
-                          onKeyPress={(e, value) => keyPressed(e, value)}
-                        />
-                      </Grid>
+                    />
+                  ) : (
+                    <EnhancedTableHead
+                      classes={classes}
+                      numSelected={selected.length}
+                      order={order}
+                      orderBy={orderBy}
+                      onSelectAllClick={handleSelectAllClick}
+                      onRequestSort={handleRequestSort}
+                      rowCount={users.items.length}
+                    />
+                  )}
+                  {users.loading ? (
+                    <Skeleton
+                      component={"tbody"}
+                      variant="rect"
+                      width={"100%"}
+                      height={100}
+                      style={{ marginTop: "10px" }}
+                    />
+                  ) : (
+                    <TableBody>
+                      {stableSort(
+                        users.items,
+                        getComparator(order, orderBy)
+                      ).map((row, index) => {
+                        const isItemSelected = isSelected(row.id);
+                        const labelId = `enhanced-table-checkbox-${index}`;
+
+                        return (
+                          <TableRow
+                            hover
+                            className={classes.tableRow}
+                            onClick={(event) => handleClick(event, row.id)}
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            tabIndex={-1}
+                            key={row.id}
+                            selected={isItemSelected}
+                          >
+                            <TableCell className={classes.tableCell}>
+                              <Checkbox
+                                checked={isItemSelected}
+                                inputProps={{ "aria-labelledby": labelId }}
+                              />
+                            </TableCell>
+                            <TableCell
+                              component="th"
+                              id={labelId}
+                              scope="row"
+                              padding="none"
+                              className={classes.tableCell}
+                            >
+                              {row.username}
+                            </TableCell>
+                            <TableCell
+                              className={classes.tableCell}
+                              scope="row"
+                              padding="none"
+                            >
+                              {row.email}
+                            </TableCell>
+                            {users.user.is_staff ? (
+                              <React.Fragment>
+                                <TableCell
+                                  className={classes.tableCell}
+                                  scope="row"
+                                  padding="none"
+                                >
+                                  {row.salary}
+                                </TableCell>
+                                <TableCell
+                                  className={classes.tableCell}
+                                  scope="row"
+                                  padding="none"
+                                >
+                                  {row.monthly_salary}
+                                </TableCell>
+                              </React.Fragment>
+                            ) : null}
+                            <TableCell
+                              className={classes.tableCell}
+                              scope="row"
+                              padding="none"
+                            >
+                              {dateFormat(row.created_at)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {emptyRows > 0 && (
+                        <TableRow style={{ height: 53 * emptyRows }}>
+                          <TableCell colSpan={6} />
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  )}
+                </Table>
+              </TableContainer>
+              {users.loading ? (
+                <Skeleton
+                  variant="rect"
+                  width={400}
+                  height={50}
+                  style={{ marginLeft: "auto", marginTop: "10px" }}
+                />
+              ) : (
+                <Grid
+                  container
+                  direction="column"
+                  alignItems="flex-end"
+                  spacing={2}
+                >
+                  <Grid
+                    item
+                    container
+                    style={{ marginTop: "10px" }}
+                    justify="flex-end"
+                    alignItems="center"
+                  >
+                    <Grid item>
+                      <Pagination
+                        color="primary"
+                        count={users.maxPage}
+                        page={pageValue}
+                        onChange={handlePageChange}
+                      />
                     </Grid>
                     <Grid item>
-                      <Autocomplete
-                        id="sort-cb"
-                        className={classes.marginBox}
-                        options={sortOption}
-                        value={sortOption[sortSelected]}
-                        getOptionLabel={(options) => options.title}
-                        onChange={(e, value) => handleSortSelected(value)}
-                        style={{ width: "300px" }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Sort"
-                            variant="outlined"
-                          />
-                        )}
+                      <TextField
+                        style={{ width: "100px" }}
+                        label="page"
+                        id="outlined-page"
+                        variant="outlined"
+                        type="number"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e, value) => keyPressed(e, value)}
                       />
                     </Grid>
                   </Grid>
-                )}
-              </React.Fragment>
-            ) : (
-              <Typography>You have no authority to access this site</Typography>
-            )}
+                  <Grid item>
+                    <Autocomplete
+                      id="sort-cb"
+                      className={classes.marginBox}
+                      options={sortOption}
+                      value={sortOption[sortSelected]}
+                      getOptionLabel={(options) => options.title}
+                      onChange={(e, value) => handleSortSelected(value)}
+                      style={{ width: "300px" }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Sort"
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              )}
+            </React.Fragment>
           </Container>
         </main>
       </div>

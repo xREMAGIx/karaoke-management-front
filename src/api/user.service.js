@@ -90,8 +90,6 @@ async function add(user) {
     ? (user.is_staff = "False")
     : (user.is_staff = "True");
 
-  console.log(user);
-
   const body = JSON.stringify(user);
   await axios.post("/api/users/", body, config).then(handleResponse);
 }
