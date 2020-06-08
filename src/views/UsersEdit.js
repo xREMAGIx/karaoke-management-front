@@ -12,6 +12,9 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import Alert from "@material-ui/lab/Alert";
 import AlertTitle from "@material-ui/lab/AlertTitle";
+import FormGroup from "@material-ui/core/FormGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 import { Link } from "react-router-dom";
 
@@ -74,11 +77,12 @@ export default function UserEdit(props) {
     username: "a",
     email: "b",
     salary: 1,
+    is_staff: false,
   });
 
   const [newSchedules, setNewSchedules] = React.useState([]);
 
-  const { username, email, salary } = formData;
+  const { username, email, salary, is_staff } = formData;
 
   useEffect(() => {
     if (users.error && typeof users.error === "string") {
@@ -173,8 +177,11 @@ export default function UserEdit(props) {
     setNewSchedules([...newSchedules]);
   };
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.checked });
+  };
+
   useEffect(() => {
-    //console.log(props.match.params.id);
     dispatch(userActions.getById(props.match.params.id));
   }, [dispatch, props.match.params.id]);
 
@@ -186,6 +193,13 @@ export default function UserEdit(props) {
       setNewSchedules([...users.item.schedules]);
     }
   }, [users.item]);
+
+  useEffect(() => {
+    if (typeof is_staff === "string") {
+      if (is_staff === "False") setFormData(((f) => is_staff: false));
+      else setFormData(((f) => is_staff: true));
+    } else return;
+  }, [is_staff]);
 
   return (
     <React.Fragment>
@@ -299,6 +313,21 @@ export default function UserEdit(props) {
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />
+
+                    <FormGroup>
+                      <FormControlLabel
+                        className={classes.switch}
+                        control={
+                          <Switch
+                            checked={formData.is_staff || false}
+                            onChange={handleChange}
+                            name="is_staff"
+                          />
+                        }
+                        label="Admin"
+                      />
+                    </FormGroup>
+
                     <Grid
                       style={{ marginTop: "10px" }}
                       container

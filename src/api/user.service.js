@@ -39,7 +39,7 @@ async function getMe() {
 
 async function logout() {
   // remove user from local storage to log user out
-  await axios.post("/api/auth/logout");
+  await axios.post("/api/auth/logout/");
   localStorage.removeItem("user");
 }
 
@@ -86,8 +86,14 @@ async function add(user) {
     },
   };
 
+  user.is_staff === false
+    ? (user.is_staff = "False")
+    : (user.is_staff = "True");
+
+  console.log(user);
+
   const body = JSON.stringify(user);
-  await axios.post("/api/auth/register", body, config).then(handleResponse);
+  await axios.post("/api/users/", body, config).then(handleResponse);
 }
 
 async function update(id, user) {
@@ -98,6 +104,11 @@ async function update(id, user) {
     },
   };
 
+  user.is_staff === false
+    ? (user.is_staff = "False")
+    : (user.is_staff = "True");
+
+  console.log(user.is_staff);
   const body = JSON.stringify(user);
 
   return await axios

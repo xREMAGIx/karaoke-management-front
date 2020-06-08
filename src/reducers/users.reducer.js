@@ -5,7 +5,7 @@ const initialState = {
   token: localStorage.getItem("token"),
   loading: true,
   isAuthenticated: false,
-  user: null,
+  user: { is_staff: false },
   items: [],
   item: null,
   next: null,
@@ -49,8 +49,10 @@ export function users(state = initialState, action) {
 
     case userConstants.LOGOUT:
       localStorage.removeItem("token");
+      setAuthToken(null);
       return {
         ...state,
+        token: null,
         loading: true,
         isAuthenticated: false,
         user: null,

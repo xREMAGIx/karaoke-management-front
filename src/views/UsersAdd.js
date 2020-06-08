@@ -11,6 +11,9 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import Alert from "@material-ui/lab/Alert";
 import AlertTitle from "@material-ui/lab/AlertTitle";
+import FormGroup from "@material-ui/core/FormGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 import { Link } from "react-router-dom";
 
@@ -41,6 +44,10 @@ const useStyles = makeStyles((theme) => ({
   gridList: {
     height: "60vh",
   },
+  switch: {
+    margin: "auto",
+    marginTop: theme.spacing(2),
+  },
 }));
 
 export default function UserAdd(props) {
@@ -64,13 +71,17 @@ export default function UserAdd(props) {
     username: "",
     email: "",
     password: "",
-    //salary: 0,
+    is_staff: false,
   });
 
   const { username, email, password } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.checked });
   };
 
   const onSubmit = async () => {
@@ -148,6 +159,19 @@ export default function UserAdd(props) {
               onChange={(e) => onChange(e)}
               onKeyPress={(e) => keyPressed(e)}
             />
+            <FormGroup>
+              <FormControlLabel
+                className={classes.switch}
+                control={
+                  <Switch
+                    checked={formData.is_staff}
+                    onChange={handleChange}
+                    name="is_staff"
+                  />
+                }
+                label="Admin"
+              />
+            </FormGroup>
             <Grid
               style={{ marginTop: "10px" }}
               container

@@ -431,25 +431,27 @@ export default function Schedules(props) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(userActions.getAllNonPagination());
-    dispatch(scheduleActions.getAll());
-    switch (history.location.state) {
-      case 201:
-        setOpenAlert(true);
-        setOpenAlertMessage("Add successful!");
-        break;
-      case 202:
-        setOpenAlert(true);
-        setOpenAlertMessage("Update successful!");
-        break;
-      case 203:
-        setOpenAlert(true);
-        setOpenAlertMessage("Delete successful!");
-        break;
-      default:
-        break;
+    if (users.user.is_staff) {
+      dispatch(userActions.getAllNonPagination());
+      dispatch(scheduleActions.getAll());
+      switch (history.location.state) {
+        case 201:
+          setOpenAlert(true);
+          setOpenAlertMessage("Add successful!");
+          break;
+        case 202:
+          setOpenAlert(true);
+          setOpenAlertMessage("Update successful!");
+          break;
+        case 203:
+          setOpenAlert(true);
+          setOpenAlertMessage("Delete successful!");
+          break;
+        default:
+          break;
+      }
     }
-  }, [dispatch]);
+  }, [dispatch, users.user.is_staff]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -560,166 +562,176 @@ export default function Schedules(props) {
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="lg" className={classes.mainContainer}>
-            {!schedules.items ? (
+            {users.user.is_staff ? (
               <React.Fragment>
-                <LinearProgress className={classes.linearLoading} />
-                <Skeleton variant="rect" width={"100%"} height={50} />
+                {!schedules.items ? (
+                  <React.Fragment>
+                    <LinearProgress className={classes.linearLoading} />
+                    <Skeleton variant="rect" width={"100%"} height={50} />
+                  </React.Fragment>
+                ) : (
+                  <EnhancedTableToolbar
+                    numSelected={selected.length}
+                    selectedIndex={selected}
+                    searchTerm={searchTerm}
+                    setSelectedIndex={setSelected}
+                    searchAction={(e) => handleChange(e)}
+                    keyPressed={keyPressedSearch}
+                  />
+                )}
+                <TableContainer className={classes.tableContainer}>
+                  <Table
+                    stickyHeader
+                    className={classes.table}
+                    aria-labelledby="tableTitle"
+                    aria-label="enhanced table"
+                  >
+                    {!schedules.items ? (
+                      <Skeleton
+                        component={"thead"}
+                        variant="rect"
+                        width={"100%"}
+                        height={40}
+                        style={{ marginTop: "10px" }}
+                      />
+                    ) : (
+                      <EnhancedTableHead
+                        classes={classes}
+                        numSelected={selected.length}
+                        order={order}
+                        orderBy={orderBy}
+                        onSelectAllClick={handleSelectAllClick}
+                        onRequestSort={handleRequestSort}
+                        rowCount={schedules.items.length}
+                      />
+                    )}
+                    {!schedules.items || !users.items ? (
+                      <Skeleton
+                        component={"tbody"}
+                        variant="rect"
+                        width={"100%"}
+                        height={100}
+                        style={{ marginTop: "10px" }}
+                      />
+                    ) : (
+                      <TableBody>
+                        {stableSort(
+                          schedules.items,
+                          getComparator(order, orderBy)
+                        ).map((row, index) => {
+                          const isItemSelected = isSelected(row.id);
+                          const labelId = `enhanced-table-checkbox-${index}`;
+
+                          return (
+                            <TableRow
+                              hover
+                              onClick={(event) => handleClick(event, row.id)}
+                              role="checkbox"
+                              aria-checked={isItemSelected}
+                              tabIndex={-1}
+                              key={row.id}
+                              selected={isItemSelected}
+                              className={classes.tableRow}
+                            >
+                              <TableCell>
+                                <Checkbox
+                                  checked={isItemSelected}
+                                  inputProps={{ "aria-labelledby": labelId }}
+                                />
+                              </TableCell>
+                              <TableCell
+                                component="th"
+                                id={labelId}
+                                scope="row"
+                                padding="none"
+                              >
+                                {users.items && users.maxPage === 1
+                                  ? users.items.find((x) => x.id === row.staff)
+                                      .username
+                                  : row.staff}
+                              </TableCell>
+                              <TableCell scope="row" padding="none">
+                                {row.weekDay}
+                              </TableCell>
+                              <TableCell scope="row" padding="none">
+                                {row.workingTime}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                        {emptyRows > 0 && (
+                          <TableRow style={{ height: 53 * emptyRows }}>
+                            <TableCell colSpan={6} />
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    )}
+                  </Table>
+                </TableContainer>
+                {!schedules.items && !users.items ? (
+                  <Skeleton
+                    variant="rect"
+                    width={400}
+                    height={50}
+                    style={{ marginLeft: "auto", marginTop: "10px" }}
+                  />
+                ) : (
+                  <Grid
+                    container
+                    direction="column"
+                    alignItems="flex-end"
+                    spacing={2}
+                  >
+                    <Grid
+                      item
+                      container
+                      style={{ marginTop: "10px" }}
+                      justify="flex-end"
+                      alignItems="center"
+                    >
+                      <Grid item>
+                        <Pagination
+                          color="primary"
+                          count={schedules.maxPage}
+                          page={pageValue}
+                          onChange={handlePageChange}
+                        />
+                      </Grid>
+                      <Grid item>
+                        <TextField
+                          style={{ width: "100px" }}
+                          label="page"
+                          id="outlined-page"
+                          variant="outlined"
+                          type="number"
+                          onChange={(e) => onChange(e)}
+                          onKeyPress={(e, value) => keyPressed(e, value)}
+                        />
+                      </Grid>
+                    </Grid>
+                    <Grid item>
+                      <Autocomplete
+                        id="sort-cb"
+                        className={classes.marginBox}
+                        options={sortOption}
+                        value={sortOption[sortSelected]}
+                        getOptionLabel={(options) => options.title}
+                        onChange={(e, value) => handleSortSelected(value)}
+                        style={{ width: "300px" }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Sort"
+                            variant="outlined"
+                          />
+                        )}
+                      />
+                    </Grid>
+                  </Grid>
+                )}
               </React.Fragment>
             ) : (
-              <EnhancedTableToolbar
-                numSelected={selected.length}
-                selectedIndex={selected}
-                searchTerm={searchTerm}
-                setSelectedIndex={setSelected}
-                searchAction={(e) => handleChange(e)}
-                keyPressed={keyPressedSearch}
-              />
-            )}
-            <TableContainer className={classes.tableContainer}>
-              <Table
-                stickyHeader
-                className={classes.table}
-                aria-labelledby="tableTitle"
-                aria-label="enhanced table"
-              >
-                {!schedules.items ? (
-                  <Skeleton
-                    component={"thead"}
-                    variant="rect"
-                    width={"100%"}
-                    height={40}
-                    style={{ marginTop: "10px" }}
-                  />
-                ) : (
-                  <EnhancedTableHead
-                    classes={classes}
-                    numSelected={selected.length}
-                    order={order}
-                    orderBy={orderBy}
-                    onSelectAllClick={handleSelectAllClick}
-                    onRequestSort={handleRequestSort}
-                    rowCount={schedules.items.length}
-                  />
-                )}
-                {!schedules.items || !users.items ? (
-                  <Skeleton
-                    component={"tbody"}
-                    variant="rect"
-                    width={"100%"}
-                    height={100}
-                    style={{ marginTop: "10px" }}
-                  />
-                ) : (
-                  <TableBody>
-                    {stableSort(
-                      schedules.items,
-                      getComparator(order, orderBy)
-                    ).map((row, index) => {
-                      const isItemSelected = isSelected(row.id);
-                      const labelId = `enhanced-table-checkbox-${index}`;
-
-                      return (
-                        <TableRow
-                          hover
-                          onClick={(event) => handleClick(event, row.id)}
-                          role="checkbox"
-                          aria-checked={isItemSelected}
-                          tabIndex={-1}
-                          key={row.id}
-                          selected={isItemSelected}
-                          className={classes.tableRow}
-                        >
-                          <TableCell>
-                            <Checkbox
-                              checked={isItemSelected}
-                              inputProps={{ "aria-labelledby": labelId }}
-                            />
-                          </TableCell>
-                          <TableCell
-                            component="th"
-                            id={labelId}
-                            scope="row"
-                            padding="none"
-                          >
-                            {users.items && users.maxPage === 1
-                              ? users.items.find((x) => x.id === row.staff)
-                                  .username
-                              : row.staff}
-                          </TableCell>
-                          <TableCell scope="row" padding="none">
-                            {row.weekDay}
-                          </TableCell>
-                          <TableCell scope="row" padding="none">
-                            {row.workingTime}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {emptyRows > 0 && (
-                      <TableRow style={{ height: 53 * emptyRows }}>
-                        <TableCell colSpan={6} />
-                      </TableRow>
-                    )}
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
-            {!schedules.items && !users.items ? (
-              <Skeleton
-                variant="rect"
-                width={400}
-                height={50}
-                style={{ marginLeft: "auto", marginTop: "10px" }}
-              />
-            ) : (
-              <Grid
-                container
-                direction="column"
-                alignItems="flex-end"
-                spacing={2}
-              >
-                <Grid
-                  item
-                  container
-                  style={{ marginTop: "10px" }}
-                  justify="flex-end"
-                  alignItems="center"
-                >
-                  <Grid item>
-                    <Pagination
-                      color="primary"
-                      count={schedules.maxPage}
-                      page={pageValue}
-                      onChange={handlePageChange}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <TextField
-                      style={{ width: "100px" }}
-                      label="page"
-                      id="outlined-page"
-                      variant="outlined"
-                      type="number"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e, value) => keyPressed(e, value)}
-                    />
-                  </Grid>
-                </Grid>
-                <Grid item>
-                  <Autocomplete
-                    id="sort-cb"
-                    className={classes.marginBox}
-                    options={sortOption}
-                    value={sortOption[sortSelected]}
-                    getOptionLabel={(options) => options.title}
-                    onChange={(e, value) => handleSortSelected(value)}
-                    style={{ width: "300px" }}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Sort" variant="outlined" />
-                    )}
-                  />
-                </Grid>
-              </Grid>
+              <Typography>You have no authority to access this site</Typography>
             )}
           </Container>
         </main>

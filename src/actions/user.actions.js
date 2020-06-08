@@ -41,10 +41,10 @@ function getMe() {
 }
 
 function login(user) {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request({ user }));
 
-    userService.login(user).then(
+    await userService.login(user).then(
       (data) => {
         dispatch(success(data));
         dispatch(requestGetMe());
@@ -136,10 +136,10 @@ function register(user) {
 }
 
 function add(user) {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(request(user));
 
-    userService.add(user).then(
+    await userService.add(user).then(
       (user) => {
         dispatch(success(user));
         history.push({ pathname: "/users", state: 201 });
