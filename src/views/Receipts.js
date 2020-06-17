@@ -40,6 +40,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import VisibilityIcon from "@material-ui/icons/Visibility";
 
 function dateFormat(date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -307,21 +308,34 @@ const EnhancedTableToolbar = (props) => {
         {numSelected > 0 ? (
           <Grid container direction="row" justify="flex-end" spacing={1}>
             {numSelected < 2 ? (
-              <Grid item>
-                {receipts.items.find(
-                  (element) => element.id === selectedIndex[0]
-                ).status === "checkedIn" ? (
-                  <Tooltip title="Modify">
+              <React.Fragment>
+                <Grid item>
+                  <Tooltip title="View detail">
                     <IconButton
+                      aria-label="view"
                       component={Link}
-                      to={"/receipts-edit/" + selectedIndex[0]}
-                      aria-label="modify"
+                      to={"/receipts-detail/" + selectedIndex[0]}
                     >
-                      <CreateIcon />
+                      <VisibilityIcon />
                     </IconButton>
                   </Tooltip>
-                ) : null}
-              </Grid>
+                </Grid>
+                <Grid item>
+                  {receipts.items.find(
+                    (element) => element.id === selectedIndex[0]
+                  ).status === "checkedIn" ? (
+                    <Tooltip title="Modify">
+                      <IconButton
+                        component={Link}
+                        to={"/receipts-edit/" + selectedIndex[0]}
+                        aria-label="modify"
+                      >
+                        <CreateIcon />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
+                </Grid>
+              </React.Fragment>
             ) : null}
             <Grid item>
               <Tooltip title="Delete">

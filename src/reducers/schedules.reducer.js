@@ -42,7 +42,11 @@ export function schedules(state = initialState, action) {
     case scheduleConstants.DELETE_SUCCESS:
       // remove deleted schedule from state
       return {
-        items: state.items.filter((schedule) => schedule.id !== state.deleteId),
+        items: [
+          ...state.items.filter(
+            (schedule) => schedule.id !== state.deleteId[0]
+          ),
+        ],
         deleteId: null,
       };
     case scheduleConstants.DELETE_FAILURE:
@@ -94,9 +98,10 @@ export function schedules(state = initialState, action) {
       return {
         ...state,
         item: [],
+        items: [...state.items, action.schedule],
       };
     case scheduleConstants.ADD_FAILURE:
-      return { error: action.error };
+      return { ...state, error: action.error };
     default:
       return state;
   }

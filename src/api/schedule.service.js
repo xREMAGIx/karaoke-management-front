@@ -63,6 +63,7 @@ async function _delete(ids) {
   const requestConfig = {
     // headers: authHeader()
   };
+  console.log(ids);
   const promises = await ids.map((id) => {
     return axios.delete(`/api/schedules/${id}`, requestConfig);
   });
@@ -71,7 +72,7 @@ async function _delete(ids) {
 
 function handleResponse(response) {
   const data = response.data;
-  if (response.status === 404) {
+  if (response.status > 400) {
     // if (response.status === 401) {
     //   // auto logout if 401 response returned from api
     //   //logout();

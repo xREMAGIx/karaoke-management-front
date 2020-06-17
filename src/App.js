@@ -28,6 +28,8 @@ import ProductEdit from "./views/ProductsEdit";
 import Receipts from "./views/Receipts";
 import ReceiptsAdd from "./views/ReceiptsAdd";
 import ReceiptsEdit from "./views/ReceiptsEdit";
+import ReceiptsDetail from "./views/ReceiptsDetail";
+
 import Page404 from "./views/404";
 
 if (localStorage.getItem("token")) {
@@ -160,6 +162,14 @@ const App = () => {
                 light={checked}
                 toggleTheme={toggleChecked}
                 component={ReceiptsEdit}
+              ></AdminRoute>
+              <AdminRoute
+                exact
+                path="/receipts-detail/:id"
+                user={user}
+                light={checked}
+                toggleTheme={toggleChecked}
+                component={ReceiptsDetail}
               ></AdminRoute>
               <AdminRoute user={user} component={Page404} />
             </Switch>

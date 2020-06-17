@@ -87,6 +87,8 @@ function add(schedule) {
 
           let errorValue = error.response.data[errorkey][0];
 
+          console.log(error.response.data[errorkey][0]);
+
           dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
         } else {
           dispatch(failure(error.toString()));
@@ -145,10 +147,9 @@ function _delete(id) {
   return async (dispatch) => {
     dispatch(request(id));
     await scheduleService.delete(id).then(
-      async (id) => {
+      (id) => {
         dispatch(success(id));
         history.replace({ pathname: "/schedules", state: 203 });
-        await dispatch(getAll());
       },
       (error) => {
         if (error.response && error.response.data) {
