@@ -32,6 +32,12 @@ const useStyles = makeStyles((theme) => ({
   marginBox: {
     margin: theme.spacing(2),
   },
+  checkInDate: {
+    color: theme.palette.warning.main,
+  },
+  checkOutDate: {
+    color: theme.palette.success.main,
+  },
 }));
 
 function dateFormat(date) {
@@ -45,12 +51,35 @@ function dateFormat(date) {
   }).format(new Date(date));
 }
 
+function subtotal(items) {
+  return items
+    .map(({ price, quantity }) => price * quantity)
+    .reduce((sum, i) => sum + i, 0);
+}
+
 export default function ReceiptDetail(props) {
   const classes = useStyles();
   const rooms = useSelector((state) => state.rooms);
   const products = useSelector((state) => state.products);
   const receipts = useSelector((state) => state.receipts);
   const dispatch = useDispatch();
+
+  const [productsInReceipt, setProductsInReceipt] = useState([]);
+
+  useEffect(() => {
+    setProductsInReceipt(
+      receipts.item && products.items
+        ? receipts.item.products.map((element) =>
+            Object.assign(
+              products.items.find((x) => x.id === element.productId) || {},
+              { quantity: element.quantity }
+            )
+          )
+        : []
+    );
+  }, [receipts.item, products.items]);
+
+  useEffect(() => {}, [receipts.item]);
 
   useEffect(() => {
     dispatch(roomActions.getAllNonPagination());
@@ -79,12 +108,20 @@ export default function ReceiptDetail(props) {
                 </Typography>
                 <Grid container spacing={3}>
                   <Grid item>
-                    <Typography variant="h6" gutterBottom>
+                    <Typography
+                      className={classes.checkInDate}
+                      variant="h6"
+                      gutterBottom
+                    >
                       Check-in Time: {dateFormat(receipts.item.checkInDate)}
                     </Typography>
                   </Grid>
                   <Grid item>
-                    <Typography variant="h6" gutterBottom>
+                    <Typography
+                      className={classes.checkOutDate}
+                      variant="h6"
+                      gutterBottom
+                    >
                       Check-out Time:{" "}
                       {receipts.item.status === "checkedOut"
                         ? dateFormat(receipts.item.checkOutDate)
@@ -92,17 +129,40 @@ export default function ReceiptDetail(props) {
                     </Typography>
                   </Grid>
                 </Grid>
-                <Typography variant="h5" gutterBottom>
-                  Status:{" "}
-                  {receipts.item.status === "checkedIn"
-                    ? "Checked In"
-                    : "Checked Out"}
+                <Typography variant="h6" gutterBottom>
+                  Total hours:{" "}
+                  <strong>
+                    {Math.floor(
+                      Math.abs(
+                        new Date(receipts.item.checkOutDate) -
+                          new Date(receipts.item.checkInDate)
+                      ) / 3600000
+                    )}{" "}
+                    hours{" "}
+                    {Math.floor(
+                      (Math.abs(
+                        new Date(receipts.item.checkOutDate) -
+                          new Date(receipts.item.checkInDate)
+                      ) /
+                        3600000 -
+                        Math.floor(
+                          Math.abs(
+                            new Date(receipts.item.checkOutDate) -
+                              new Date(receipts.item.checkInDate)
+                          ) / 3600000
+                        )) *
+                        60
+                    )}{" "}
+                    mins
+                  </strong>
                 </Typography>
-
                 <Typography variant="h6" gutterBottom>
                   Number of products used: {receipts.item.products.length}
                 </Typography>
-                {receipts.item.products.length > 0 ? (
+                <Typography variant="h6" align="center" gutterBottom>
+                  BILL
+                </Typography>
+                {productsInReceipt.length > 0 ? (
                   <TableContainer component={Paper}>
                     <Table className={classes.table} aria-label="simple table">
                       <TableHead>
@@ -114,38 +174,76 @@ export default function ReceiptDetail(props) {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {receipts.item.products.map((product, index) => (
+                        {productsInReceipt.map((product, index) => (
                           <TableRow key={index}>
                             <TableCell component="th" scope="row">
-                              {(
-                                products.items.find(
-                                  (x) => x.id === product.productId
-                                ) || {}
-                              ).productName || null}
+                              {product.productName}
                             </TableCell>
                             <TableCell align="right">
                               {product.quantity}
                             </TableCell>
+                            <TableCell align="right">{product.price}</TableCell>
                             <TableCell align="right">
-                              {(
-                                products.items.find(
-                                  (x) => x.id === product.productId
-                                ) || {}
-                              ).price || null}
-                            </TableCell>
-                            <TableCell align="right">
-                              {(
-                                products.items.find(
-                                  (x) => x.id === product.productId
-                                ) || {}
-                              ).price * product.quantity || null}
+                              {product.price * product.quantity}
                             </TableCell>
                           </TableRow>
                         ))}
+
+                        <TableRow>
+                          <TableCell rowSpan={3} />
+                          <TableCell colSpan={2}>Subtotal products</TableCell>
+                          <TableCell align="right">
+                            {subtotal(productsInReceipt)}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Subtotal room price</TableCell>
+                          <TableCell align="right">
+                            {receipts.item.price}$ per hour
+                          </TableCell>
+                          <TableCell align="right">
+                            {receipts.item.total - subtotal(productsInReceipt)}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={2}>Total</TableCell>
+                          <TableCell align="right">
+                            {receipts.item.total}
+                          </TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
                   </TableContainer>
-                ) : null}
+                ) : (
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} aria-label="simple table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Room</TableCell>
+                          <TableCell align="right">Price per hour</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow key={receipts.item._id}>
+                          <TableCell component="th" scope="row">
+                            {(
+                              rooms.items.find(
+                                (x) => x.id === receipts.item.room
+                              ) || {}
+                            ).roomId || receipts.item.room}
+                          </TableCell>
+                          <TableCell align="right">
+                            {receipts.item.price}
+                          </TableCell>
+                          <TableCell align="right">
+                            {receipts.item.total}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
               </React.Fragment>
             ) : null}
           </Container>

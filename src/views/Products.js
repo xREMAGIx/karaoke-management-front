@@ -230,7 +230,8 @@ const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
   const { numSelected, selectedIndex } = props;
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  //const user = useSelector(state => state.authentication.user);
+
+  const users = useSelector((state) => state.users);
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
@@ -320,13 +321,15 @@ const EnhancedTableToolbar = (props) => {
                 </Tooltip>
               </Grid>
             ) : null}
-            <Grid item>
-              <Tooltip title="Delete">
-                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
+            {users.user && users.user.is_staff ? (
+              <Grid item>
+                <Tooltip title="Delete">
+                  <IconButton aria-label="delete" onClick={handleDeleteOpen}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+            ) : null}
           </Grid>
         ) : (
           <Grid

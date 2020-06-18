@@ -239,6 +239,7 @@ const EnhancedTableToolbar = (props) => {
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
   const receipts = useSelector((state) => state.receipts);
+  const users = useSelector((state) => state.users);
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
@@ -310,17 +311,6 @@ const EnhancedTableToolbar = (props) => {
             {numSelected < 2 ? (
               <React.Fragment>
                 <Grid item>
-                  <Tooltip title="View detail">
-                    <IconButton
-                      aria-label="view"
-                      component={Link}
-                      to={"/receipts-detail/" + selectedIndex[0]}
-                    >
-                      <VisibilityIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Grid>
-                <Grid item>
                   {receipts.items.find(
                     (element) => element.id === selectedIndex[0]
                   ).status === "checkedIn" ? (
@@ -333,17 +323,31 @@ const EnhancedTableToolbar = (props) => {
                         <CreateIcon />
                       </IconButton>
                     </Tooltip>
-                  ) : null}
+                  ) : (
+                    <Grid item>
+                      <Tooltip title="View detail">
+                        <IconButton
+                          aria-label="view"
+                          component={Link}
+                          to={"/receipts-detail/" + selectedIndex[0]}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Grid>
+                  )}
                 </Grid>
               </React.Fragment>
             ) : null}
-            <Grid item>
-              <Tooltip title="Delete">
-                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
+            {users.user && users.user.is_staff ? (
+              <Grid item>
+                <Tooltip title="Delete">
+                  <IconButton aria-label="delete" onClick={handleDeleteOpen}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+            ) : null}
           </Grid>
         ) : (
           <Grid
@@ -710,10 +714,8 @@ export default function Receipts(props) {
                             scope="row"
                             padding="none"
                           >
-                            {rooms.items.find((x) => x.id === row.room)
-                              ? rooms.items.find((x) => x.id === row.room)
-                                  .roomId
-                              : row.room}
+                            {(rooms.items.find((x) => x.id === row.room) || {})
+                              .roomId || row.room}
                           </TableCell>
                           <TableCell scope="row" padding="none">
                             {dateFormat(row.checkInDate)}

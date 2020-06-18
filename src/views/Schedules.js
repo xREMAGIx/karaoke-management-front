@@ -84,6 +84,11 @@ const useStyles = makeStyles((theme) => ({
   chip: {
     margin: theme.spacing(0.5),
   },
+  menuItem: {
+    ".MuiSelect-root": {
+      maxHeight: "100px",
+    },
+  },
 }));
 
 const weekDay = [
@@ -95,6 +100,16 @@ const weekDay = [
   "saturday",
   "sunday",
 ];
+
+const SelectProps = {
+  MenuProps: {
+    PaperProps: {
+      style: {
+        maxHeight: "30vh",
+      },
+    },
+  },
+};
 
 export default function Schedules(props) {
   const classes = useStyles();
@@ -161,6 +176,10 @@ export default function Schedules(props) {
   const handleDelete = (chipToDelete) => () => {
     dispatch(scheduleActions.delete([chipToDelete.id]));
   };
+
+  useEffect(() => {
+    console.log(users.user && users.user.is_staff);
+  }, [users.user]);
 
   return (
     <React.Fragment>
@@ -243,6 +262,9 @@ export default function Schedules(props) {
                                         }
                                         onDelete={handleDelete(data)}
                                         className={classes.chip}
+                                        disabled={
+                                          users.user && !users.user.is_staff
+                                        }
                                       />
                                     </li>
                                   );
@@ -250,9 +272,11 @@ export default function Schedules(props) {
                               <TextField
                                 select
                                 value={""}
+                                disabled={users.user && !users.user.is_staff}
                                 onChange={(e) =>
                                   handleSelect(e, dayOfWeek, "morning")
                                 }
+                                SelectProps={SelectProps}
                               >
                                 {users.items.map((option) => (
                                   <MenuItem key={option.id} value={option.id}>
@@ -294,6 +318,9 @@ export default function Schedules(props) {
                                         }
                                         onDelete={handleDelete(data)}
                                         className={classes.chip}
+                                        disabled={
+                                          users.user && !users.user.is_staff
+                                        }
                                       />
                                     </li>
                                   );
@@ -301,9 +328,11 @@ export default function Schedules(props) {
                               <TextField
                                 select
                                 value={""}
+                                disabled={users.user && !users.user.is_staff}
                                 onChange={(e) =>
                                   handleSelect(e, dayOfWeek, "afternoon")
                                 }
+                                SelectProps={SelectProps}
                               >
                                 {users.items.map((option) => (
                                   <MenuItem key={option.id} value={option.id}>
@@ -319,8 +348,8 @@ export default function Schedules(props) {
                         <TableCell component="th" scope="row">
                           Evening
                         </TableCell>
-                        {weekDay.map((dayOfWeek) => (
-                          <TableCell align="right">
+                        {weekDay.map((dayOfWeek, index) => (
+                          <TableCell key={index} align="right">
                             <Paper
                               component="ul"
                               className={classes.chipRoot}
@@ -345,6 +374,9 @@ export default function Schedules(props) {
                                         }
                                         onDelete={handleDelete(data)}
                                         className={classes.chip}
+                                        disabled={
+                                          users.user && !users.user.is_staff
+                                        }
                                       />
                                     </li>
                                   );
@@ -352,9 +384,11 @@ export default function Schedules(props) {
                               <TextField
                                 select
                                 value={""}
+                                disabled={users.user && !users.user.is_staff}
                                 onChange={(e) =>
                                   handleSelect(e, dayOfWeek, "evening")
                                 }
+                                SelectProps={SelectProps}
                               >
                                 {users.items.map((option) => (
                                   <MenuItem key={option.id} value={option.id}>

@@ -230,6 +230,7 @@ const EnhancedTableToolbar = (props) => {
 
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
+  const users = useSelector((state) => state.users);
   const dispatch = useDispatch();
 
   const onDelete = (id) => {
@@ -310,13 +311,15 @@ const EnhancedTableToolbar = (props) => {
                 <RoomEditModal id={selectedIndex[0]} />
               </Grid>
             ) : null}
-            <Grid item>
-              <Tooltip title="Delete">
-                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
+            {users.user && users.user.is_staff ? (
+              <Grid item>
+                <Tooltip title="Delete">
+                  <IconButton aria-label="delete" onClick={handleDeleteOpen}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+            ) : null}
           </Grid>
         ) : (
           <Grid

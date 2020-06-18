@@ -347,9 +347,9 @@ export default function UserEdit(props) {
 
                     <Grid container>
                       {newSchedules.length > 0 &&
-                        newSchedules.map((schedule) => (
+                        newSchedules.map((schedule, index) => (
                           <Grid
-                            key={schedule._id}
+                            key={index}
                             style={{ marginTop: "10px" }}
                             item
                             xs={12}
