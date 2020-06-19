@@ -37,7 +37,7 @@ if (localStorage.getItem("token")) {
 }
 
 const App = () => {
-  const [checked, setChecked] = React.useState(false);
+  const [checked, setChecked] = React.useState(true);
 
   const toggleChecked = () => {
     setChecked((prev) => !prev);

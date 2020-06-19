@@ -5,6 +5,7 @@ import { history } from "../store";
 export const scheduleActions = {
   add,
   getAll,
+  getAllNonPagination,
   getById,
   update,
   delete: _delete,
@@ -18,6 +19,36 @@ function getAll(url) {
       (schedules) => {
         dispatch(success(schedules));
       },
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
+    );
+  };
+
+  function request() {
+    return { type: scheduleConstants.GETALL_REQUEST };
+  }
+  function success(schedules) {
+    return { type: scheduleConstants.GETALL_SUCCESS, schedules };
+  }
+  function failure(error) {
+    return { type: scheduleConstants.GETALL_FAILURE, error };
+  }
+}
+
+function getAllNonPagination() {
+  return async (dispatch) => {
+    dispatch(request());
+    await scheduleService.getAllNonPagination().then(
+      (schedules) => dispatch(success(schedules)),
       (error) => {
         if (error.response && error.response.data) {
           let errorkey = Object.keys(error.response.data)[0];

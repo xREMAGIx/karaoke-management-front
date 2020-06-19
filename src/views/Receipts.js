@@ -430,7 +430,7 @@ const useStyles = makeStyles((theme) => ({
   checkIn: {
     "& .MuiTableCell-root": {
       padding: 0,
-      color: "#f5b942",
+      color: theme.palette.warning.main,
     },
     "&:nth-of-type(odd)": {
       backgroundColor: theme.palette.action.focus,

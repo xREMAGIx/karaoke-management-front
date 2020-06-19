@@ -411,7 +411,7 @@ const useStyles = makeStyles((theme) => ({
   },
   outOfStock: {
     "& .MuiTableCell-body": {
-      color: "#fc2403",
+      color: theme.palette.error.main,
     },
   },
   linearLoading: {

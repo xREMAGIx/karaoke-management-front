@@ -126,7 +126,7 @@ export default function Schedules(props) {
 
   useEffect(() => {
     dispatch(userActions.getAllNonPagination());
-    dispatch(scheduleActions.getAll());
+    dispatch(scheduleActions.getAllNonPagination());
   }, [dispatch]);
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import axios from "axios";
 
 export const scheduleService = {
   getAll,
+  getAllNonPagination,
   getById,
   add,
   update,
@@ -16,6 +17,15 @@ async function getAll(url = null) {
   const params = url === null ? `/api/schedules` : url;
 
   return await axios.get(params, requestConfig).then(handleResponse);
+}
+
+async function getAllNonPagination() {
+  const requestConfig = {
+    //headers: authHeader(),
+  };
+  return await axios
+    .get(`/api/allSchedules/`, requestConfig)
+    .then(handleResponse);
 }
 
 async function getById(id) {

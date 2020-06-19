@@ -108,20 +108,12 @@ export default function ReceiptDetail(props) {
                 </Typography>
                 <Grid container spacing={3}>
                   <Grid item>
-                    <Typography
-                      className={classes.checkInDate}
-                      variant="h6"
-                      gutterBottom
-                    >
+                    <Typography variant="h6" gutterBottom>
                       Check-in Time: {dateFormat(receipts.item.checkInDate)}
                     </Typography>
                   </Grid>
                   <Grid item>
-                    <Typography
-                      className={classes.checkOutDate}
-                      variant="h6"
-                      gutterBottom
-                    >
+                    <Typography variant="h6" gutterBottom>
                       Check-out Time:{" "}
                       {receipts.item.status === "checkedOut"
                         ? dateFormat(receipts.item.checkOutDate)
