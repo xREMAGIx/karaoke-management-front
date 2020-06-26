@@ -6,7 +6,6 @@ import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import Link from "@material-ui/core/Link";
-import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
@@ -14,13 +13,11 @@ import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import { useDispatch, useSelector } from "react-redux";
 import { userActions } from "../actions";
-import { history } from "../store";
 import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import Alert from "@material-ui/lab/Alert";
 import AlertTitle from "@material-ui/lab/AlertTitle";
-import Snackbar from "@material-ui/core/Snackbar";
 import { Redirect } from "react-router-dom";
 
 function Copyright() {
@@ -64,8 +61,6 @@ export default function SignIn() {
     password: "",
   });
 
-  const [successOpen, setSuccessOpen] = React.useState(false);
-
   const [errorOpen, setErrorOpen] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
 
@@ -74,10 +69,6 @@ export default function SignIn() {
 
   const { username, password } = formData;
 
-  useEffect(() => {
-    if (history.location.state === 200) setSuccessOpen(true);
-  }, []);
-
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   useEffect(() => {
     if (users.isAuthenticated === true) {
@@ -85,12 +76,6 @@ export default function SignIn() {
     }
   }, [users]);
 
-  const handleClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSuccessOpen(false);
-  };
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -120,15 +105,6 @@ export default function SignIn() {
   } else {
     return (
       <React.Fragment>
-        <Snackbar
-          open={successOpen}
-          autoHideDuration={6000}
-          onClose={handleClose}
-        >
-          <Alert onClose={handleClose} severity="success">
-            Register successful!
-          </Alert>
-        </Snackbar>
         <Container component="main" maxWidth="xs">
           <CssBaseline />
           <div className={classes.paper}>
@@ -200,18 +176,6 @@ export default function SignIn() {
             >
               Sign In
             </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
-              <Grid item>
-                <Link href="/register" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
-              </Grid>
-            </Grid>
           </div>
           <Box mt={8}>
             <Copyright />

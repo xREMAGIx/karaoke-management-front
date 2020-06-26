@@ -305,7 +305,6 @@ const EnhancedTableToolbar = (props) => {
             Receipts
           </Typography>
         )}
-
         {numSelected > 0 ? (
           <Grid container direction="row" justify="flex-end" spacing={1}>
             {numSelected < 2 ? (
@@ -339,15 +338,13 @@ const EnhancedTableToolbar = (props) => {
                 </Grid>
               </React.Fragment>
             ) : null}
-            {users.user && users.user.is_staff ? (
-              <Grid item>
-                <Tooltip title="Delete">
-                  <IconButton aria-label="delete" onClick={handleDeleteOpen}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-            ) : null}
+            <Grid item>
+              <Tooltip title="Delete">
+                <IconButton aria-label="delete" onClick={handleDeleteOpen}>
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Grid>
           </Grid>
         ) : (
           <Grid

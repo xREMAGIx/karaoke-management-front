@@ -90,6 +90,19 @@ export function schedules(state = initialState, action) {
     case scheduleConstants.GETBYID_ERROR:
       return { error: action.error };
 
+    case scheduleConstants.GETBY_WEEKLYSCHEDULE_ID_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+    case scheduleConstants.GETBY_WEEKLYSCHEDULE_ID_SUCCESS:
+      return {
+        ...state,
+        items: action.data.schedules,
+      };
+    case scheduleConstants.GETBY_WEEKLYSCHEDULE_ID_ERROR:
+      return { error: action.error };
+
     case scheduleConstants.ADD_REQUEST:
       return {
         ...state,

@@ -6,6 +6,7 @@ export const scheduleActions = {
   add,
   getAll,
   getAllNonPagination,
+  getByWeeklyScheduleId,
   getById,
   update,
   delete: _delete,
@@ -104,6 +105,39 @@ function getById(id) {
   }
 }
 
+function getByWeeklyScheduleId(id) {
+  return async (dispatch) => {
+    dispatch(request(id));
+    await scheduleService.getByWeeklyScheduleId(id).then(
+      (data) => dispatch(success(data)),
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
+    );
+  };
+
+  function request(id) {
+    return { type: scheduleConstants.GETBY_WEEKLYSCHEDULE_ID_REQUEST, id };
+  }
+  function success(data) {
+    return {
+      type: scheduleConstants.GETBY_WEEKLYSCHEDULE_ID_SUCCESS,
+      data,
+    };
+  }
+  function failure(error) {
+    return { type: scheduleConstants.GETBY_WEEKLYSCHEDULE_ID_FAILURE, error };
+  }
+}
+
 function add(schedule) {
   return async (dispatch) => {
     dispatch(request(schedule));
@@ -174,12 +208,12 @@ function update(id, schedule) {
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
-function _delete(id) {
+function _delete(id, weeklyschedule) {
   return async (dispatch) => {
     dispatch(request(id));
     await scheduleService.delete(id).then(
-      (id) => {
-        dispatch(success(id));
+      (data) => {
+        dispatch(success(data));
         history.replace({ pathname: "/schedules", state: 203 });
       },
       (error) => {
@@ -199,8 +233,8 @@ function _delete(id) {
   function request(id) {
     return { type: scheduleConstants.DELETE_REQUEST, id };
   }
-  function success(id) {
-    return { type: scheduleConstants.DELETE_SUCCESS, id };
+  function success(data) {
+    return { type: scheduleConstants.DELETE_SUCCESS, data };
   }
   function failure(id, error) {
     return { type: scheduleConstants.DELETE_FAILURE, id, error };

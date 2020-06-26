@@ -2,7 +2,11 @@ import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import CustomDrawer from "../components/CustomDrawer";
 import { useDispatch, useSelector } from "react-redux";
-import { scheduleActions, userActions } from "../actions";
+import {
+  scheduleActions,
+  userActions,
+  weeklyScheduleActions,
+} from "../actions";
 import { history } from "../store";
 
 import Table from "@material-ui/core/Table";
@@ -21,9 +25,21 @@ import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import AlertTitle from "@material-ui/lab/AlertTitle";
-
+import Grid from "@material-ui/core/Grid";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import Button from "@material-ui/core/Button";
+import { DatePicker } from "@material-ui/pickers";
+import Modal from "@material-ui/core/Modal";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+
+function dateFormat(date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(date));
+}
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -89,6 +105,20 @@ const useStyles = makeStyles((theme) => ({
       maxHeight: "100px",
     },
   },
+  dateModal: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  paperDateModal: {
+    width: 400,
+    backgroundColor: theme.palette.background.paper,
+
+    padding: theme.spacing(2, 4, 3),
+  },
+  alertContainer: {
+    marginBottom: theme.spacing(1),
+  },
 }));
 
 const weekDay = [
@@ -120,14 +150,45 @@ export default function Schedules(props) {
   const [errorOpen, setErrorOpen] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
 
+  const [dateModalOpen, setDateModalOpen] = React.useState(false);
+
+  const [selectedDate, handleDateChange] = React.useState(new Date());
+
+  const [selectedWeeklySchedule, setSelectedWeeklySchedule] = React.useState();
+
+  const [validate, setValidate] = React.useState(true);
+
   const schedules = useSelector((state) => state.schedules);
   const users = useSelector((state) => state.users);
+  const weeklySchedules = useSelector((state) => state.weeklySchedules);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(userActions.getAllNonPagination());
-    dispatch(scheduleActions.getAllNonPagination());
+    dispatch(weeklyScheduleActions.getAllNonPagination());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (weeklySchedules.items) {
+      setSelectedWeeklySchedule(weeklySchedules.items[0]);
+    }
+  }, [weeklySchedules.items]);
+
+  useEffect(() => {
+    if (selectedWeeklySchedule) {
+      dispatch(
+        scheduleActions.getByWeeklyScheduleId(selectedWeeklySchedule.id)
+      );
+      var weeklyScheduleStart = new Date(selectedWeeklySchedule.start);
+      var curr = new Date();
+      var firstday = new Date(curr.setDate(curr.getDate() - curr.getDay() + 1));
+
+      if (weeklyScheduleStart.getDate() < firstday.getDate())
+        setValidate(false);
+      else setValidate(true);
+    }
+  }, [selectedWeeklySchedule, dispatch]);
 
   useEffect(() => {
     switch (history.location.state) {
@@ -155,6 +216,13 @@ export default function Schedules(props) {
     }
   }, [schedules.error]);
 
+  useEffect(() => {
+    if (weeklySchedules.error && typeof weeklySchedules.error === "string") {
+      setErrorOpen(true);
+      setErrorMessage(weeklySchedules.error);
+    }
+  }, [weeklySchedules.error]);
+
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -163,18 +231,30 @@ export default function Schedules(props) {
     setOpenAlert(false);
   };
 
-  const handleSelect = (e, dayOfWeek, workingTime) => {
+  const handleSelect = (e, dayOfWeek, workingTime, weeklyScheduleId) => {
     dispatch(
       scheduleActions.add({
         staff: e.target.value,
         weekDay: dayOfWeek,
         workingTime: workingTime,
+        weeklySchedule: weeklyScheduleId,
       })
     );
   };
 
   const handleDelete = (chipToDelete) => () => {
-    dispatch(scheduleActions.delete([chipToDelete.id]));
+    console.log(chipToDelete);
+    dispatch(
+      scheduleActions.delete([chipToDelete.id], chipToDelete.weeklySchedule)
+    );
+  };
+
+  const handleDateModalOpen = () => {
+    setDateModalOpen(true);
+  };
+
+  const handleDateModalClose = () => {
+    setDateModalOpen(false);
   };
 
   useEffect(() => {
@@ -215,194 +295,298 @@ export default function Schedules(props) {
                 {errorMessage}
               </Alert>
             </Collapse>
-            {schedules.items && users.items ? (
+
+            {weeklySchedules.items ? (
               <React.Fragment>
-                <TableContainer component={Paper}>
-                  <Table className={classes.table} aria-label="simple table">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Shift</TableCell>
-                        <TableCell>Monday</TableCell>
-                        <TableCell>Tuesday</TableCell>
-                        <TableCell>Wednesday</TableCell>
-                        <TableCell>Thursday</TableCell>
-                        <TableCell>Friday</TableCell>
-                        <TableCell>Saturday</TableCell>
-                        <TableCell>Sunday</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Morning
-                        </TableCell>
-                        {weekDay.map((dayOfWeek, index) => (
-                          <TableCell key={index} align="right">
-                            <Paper
-                              component="ul"
-                              className={classes.chipRoot}
-                              elevation={0}
-                            >
-                              {schedules.items
-                                .filter(
-                                  (schedule) =>
-                                    schedule.weekDay === dayOfWeek &&
-                                    schedule.workingTime === "morning"
-                                )
-                                .map((data, index) => {
-                                  return (
-                                    <li key={index}>
-                                      <Chip
-                                        label={
-                                          (
-                                            users.items.find(
-                                              (x) => x.id === data.staff
-                                            ) || {}
-                                          ).username || null
-                                        }
-                                        onDelete={handleDelete(data)}
-                                        className={classes.chip}
-                                        disabled={
-                                          users.user && !users.user.is_staff
-                                        }
-                                      />
-                                    </li>
-                                  );
-                                })}
-                              <TextField
-                                select
-                                value={""}
-                                disabled={users.user && !users.user.is_staff}
-                                onChange={(e) =>
-                                  handleSelect(e, dayOfWeek, "morning")
-                                }
-                                SelectProps={SelectProps}
-                              >
-                                {users.items.map((option) => (
-                                  <MenuItem key={option.id} value={option.id}>
-                                    {option.username}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Paper>
+                <Grid
+                  container
+                  justify="space-evenly"
+                  alignItems="center"
+                  style={{ marginBottom: 20 }}
+                >
+                  {/* Choose Weekly Schedule */}
+                  <Grid item>
+                    <Autocomplete
+                      value={selectedWeeklySchedule || null}
+                      onChange={(event, newValue) => {
+                        setSelectedWeeklySchedule(newValue);
+                      }}
+                      options={weeklySchedules.items}
+                      getOptionLabel={(option) => option.start}
+                      style={{ width: 300 }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Weekly Schedules"
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item>
+                    {/* Modal add new Weekly Schedule */}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleDateModalOpen}
+                    >
+                      Add new Weekly Schedules
+                    </Button>
+                    <Modal
+                      className={classes.dateModal}
+                      open={dateModalOpen}
+                      onClose={handleDateModalClose}
+                      aria-labelledby="simple-modal-title"
+                      aria-describedby="simple-modal-description"
+                    >
+                      <Paper className={classes.paperDateModal}>
+                        <DatePicker
+                          disableToolbar
+                          disablePast
+                          variant="inline"
+                          label="Only calendar"
+                          helperText="No year selection"
+                          value={selectedDate}
+                          onChange={handleDateChange}
+                        />
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            dispatch(
+                              weeklyScheduleActions.add({
+                                start: selectedDate.toISOString().slice(0, 10),
+                              })
+                            );
+                          }}
+                        >
+                          Add
+                        </Button>
+                      </Paper>
+                    </Modal>
+                  </Grid>
+                </Grid>
+                {/* Table Schedule this week */}
+                {schedules.items ? (
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} aria-label="simple table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Shift</TableCell>
+                          <TableCell>Monday</TableCell>
+                          <TableCell>Tuesday</TableCell>
+                          <TableCell>Wednesday</TableCell>
+                          <TableCell>Thursday</TableCell>
+                          <TableCell>Friday</TableCell>
+                          <TableCell>Saturday</TableCell>
+                          <TableCell>Sunday</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell component="th" scope="row">
+                            Morning
                           </TableCell>
-                        ))}
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Afternoon
-                        </TableCell>
-                        {weekDay.map((dayOfWeek, index) => (
-                          <TableCell key={index} align="right">
-                            <Paper
-                              component="ul"
-                              className={classes.chipRoot}
-                              elevation={0}
-                            >
-                              {schedules.items
-                                .filter(
-                                  (schedule) =>
-                                    schedule.weekDay === dayOfWeek &&
-                                    schedule.workingTime === "afternoon"
-                                )
-                                .map((data, index) => {
-                                  return (
-                                    <li key={index}>
-                                      <Chip
-                                        label={
-                                          (
-                                            users.items.find(
-                                              (x) => x.id === data.staff
-                                            ) || {}
-                                          ).username || null
-                                        }
-                                        onDelete={handleDelete(data)}
-                                        className={classes.chip}
-                                        disabled={
-                                          users.user && !users.user.is_staff
-                                        }
-                                      />
-                                    </li>
-                                  );
-                                })}{" "}
-                              <TextField
-                                select
-                                value={""}
-                                disabled={users.user && !users.user.is_staff}
-                                onChange={(e) =>
-                                  handleSelect(e, dayOfWeek, "afternoon")
-                                }
-                                SelectProps={SelectProps}
+                          {weekDay.map((dayOfWeek, index) => (
+                            <TableCell key={index} align="right">
+                              <Paper
+                                component="ul"
+                                className={classes.chipRoot}
+                                elevation={0}
                               >
-                                {users.items.map((option) => (
-                                  <MenuItem key={option.id} value={option.id}>
-                                    {option.username}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Paper>
+                                {schedules.items
+                                  .filter(
+                                    (schedule) =>
+                                      schedule.weekDay === dayOfWeek &&
+                                      schedule.workingTime === "morning"
+                                  )
+                                  .map((data, index) => {
+                                    return (
+                                      <li key={index}>
+                                        <Chip
+                                          label={
+                                            (
+                                              users.items.find(
+                                                (x) => x.id === data.staff
+                                              ) || {}
+                                            ).username || null
+                                          }
+                                          onDelete={handleDelete(data)}
+                                          className={classes.chip}
+                                          disabled={
+                                            (users.user &&
+                                              !users.user.is_staff) ||
+                                            !validate
+                                          }
+                                        />
+                                      </li>
+                                    );
+                                  })}
+                                <TextField
+                                  select
+                                  value={""}
+                                  disabled={
+                                    (users.user && !users.user.is_staff) ||
+                                    !validate
+                                  }
+                                  onChange={(e) =>
+                                    handleSelect(
+                                      e,
+                                      dayOfWeek,
+                                      "morning",
+                                      selectedWeeklySchedule.id
+                                    )
+                                  }
+                                  SelectProps={SelectProps}
+                                >
+                                  {users.items.map((option) => (
+                                    <MenuItem key={option.id} value={option.id}>
+                                      {option.username}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Paper>
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                        <TableRow>
+                          <TableCell component="th" scope="row">
+                            Afternoon
                           </TableCell>
-                        ))}
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Evening
-                        </TableCell>
-                        {weekDay.map((dayOfWeek, index) => (
-                          <TableCell key={index} align="right">
-                            <Paper
-                              component="ul"
-                              className={classes.chipRoot}
-                              elevation={0}
-                            >
-                              {schedules.items
-                                .filter(
-                                  (schedule) =>
-                                    schedule.weekDay === dayOfWeek &&
-                                    schedule.workingTime === "evening"
-                                )
-                                .map((data, index) => {
-                                  return (
-                                    <li key={index}>
-                                      <Chip
-                                        label={
-                                          (
-                                            users.items.find(
-                                              (x) => x.id === data.staff
-                                            ) || {}
-                                          ).username || null
-                                        }
-                                        onDelete={handleDelete(data)}
-                                        className={classes.chip}
-                                        disabled={
-                                          users.user && !users.user.is_staff
-                                        }
-                                      />
-                                    </li>
-                                  );
-                                })}
-                              <TextField
-                                select
-                                value={""}
-                                disabled={users.user && !users.user.is_staff}
-                                onChange={(e) =>
-                                  handleSelect(e, dayOfWeek, "evening")
-                                }
-                                SelectProps={SelectProps}
+                          {weekDay.map((dayOfWeek, index) => (
+                            <TableCell key={index} align="right">
+                              <Paper
+                                component="ul"
+                                className={classes.chipRoot}
+                                elevation={0}
                               >
-                                {users.items.map((option) => (
-                                  <MenuItem key={option.id} value={option.id}>
-                                    {option.username}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Paper>
+                                {schedules.items
+                                  .filter(
+                                    (schedule) =>
+                                      schedule.weekDay === dayOfWeek &&
+                                      schedule.workingTime === "afternoon"
+                                  )
+                                  .map((data, index) => {
+                                    return (
+                                      <li key={index}>
+                                        <Chip
+                                          label={
+                                            (
+                                              users.items.find(
+                                                (x) => x.id === data.staff
+                                              ) || {}
+                                            ).username || null
+                                          }
+                                          onDelete={handleDelete(data)}
+                                          className={classes.chip}
+                                          disabled={
+                                            (users.user &&
+                                              !users.user.is_staff) ||
+                                            !validate
+                                          }
+                                        />
+                                      </li>
+                                    );
+                                  })}{" "}
+                                <TextField
+                                  select
+                                  value={""}
+                                  disabled={
+                                    (users.user && !users.user.is_staff) ||
+                                    !validate
+                                  }
+                                  onChange={(e) =>
+                                    handleSelect(
+                                      e,
+                                      dayOfWeek,
+                                      "afternoon",
+                                      selectedWeeklySchedule.id
+                                    )
+                                  }
+                                  SelectProps={SelectProps}
+                                >
+                                  {users.items.map((option) => (
+                                    <MenuItem key={option.id} value={option.id}>
+                                      {option.username}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Paper>
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                        <TableRow>
+                          <TableCell component="th" scope="row">
+                            Evening
                           </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                          {weekDay.map((dayOfWeek, index) => (
+                            <TableCell key={index} align="right">
+                              <Paper
+                                component="ul"
+                                className={classes.chipRoot}
+                                elevation={0}
+                              >
+                                {schedules.items
+                                  .filter(
+                                    (schedule) =>
+                                      schedule.weekDay === dayOfWeek &&
+                                      schedule.workingTime === "evening"
+                                  )
+                                  .map((data, index) => {
+                                    return (
+                                      <li key={index}>
+                                        <Chip
+                                          label={
+                                            (
+                                              users.items.find(
+                                                (x) => x.id === data.staff
+                                              ) || {}
+                                            ).username || null
+                                          }
+                                          onDelete={handleDelete(data)}
+                                          className={classes.chip}
+                                          disabled={
+                                            (users.user &&
+                                              !users.user.is_staff) ||
+                                            !validate
+                                          }
+                                        />
+                                      </li>
+                                    );
+                                  })}
+                                <TextField
+                                  select
+                                  value={""}
+                                  disabled={
+                                    (users.user && !users.user.is_staff) ||
+                                    !validate
+                                  }
+                                  onChange={(e) =>
+                                    handleSelect(
+                                      e,
+                                      dayOfWeek,
+                                      "evening",
+                                      selectedWeeklySchedule.id
+                                    )
+                                  }
+                                  SelectProps={SelectProps}
+                                >
+                                  {users.items.map((option) => (
+                                    <MenuItem key={option.id} value={option.id}>
+                                      {option.username}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Paper>
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Skeleton variant="rect" width={"100vw"} height={300} />
+                )}
               </React.Fragment>
             ) : (
               <Skeleton variant="rect" width={"100vw"} height={500} />

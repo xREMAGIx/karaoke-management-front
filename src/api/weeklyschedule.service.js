@@ -1,10 +1,9 @@
 //import { authHeader } from "../_helpers";
 import axios from "axios";
 
-export const scheduleService = {
+export const weeklyScheduleService = {
   getAll,
   getAllNonPagination,
-  getByWeeklyScheduleId,
   getById,
   add,
   update,
@@ -15,7 +14,7 @@ async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
-  const params = url === null ? `/api/schedules` : url;
+  const params = url === null ? `/api/weeklySchedule` : url;
 
   return await axios.get(params, requestConfig).then(handleResponse);
 }
@@ -25,20 +24,11 @@ async function getAllNonPagination() {
     //headers: authHeader(),
   };
   return await axios
-    .get(`/api/allSchedules/`, requestConfig)
+    .get(`/api/allWeeklySchedules/`, requestConfig)
     .then(handleResponse);
 }
 
 async function getById(id) {
-  const requestConfig = {
-    //headers: authHeader(),
-  };
-  return await axios
-    .get(`/api/schedules/${id}`, requestConfig)
-    .then(handleResponse);
-}
-
-async function getByWeeklyScheduleId(id) {
   const requestConfig = {
     //headers: authHeader(),
   };
@@ -58,7 +48,7 @@ async function add(schedule) {
   const body = JSON.stringify(schedule);
 
   return await axios
-    .post("/api/schedules/", body, requestConfig)
+    .post("/api/weeklySchedules/", body, requestConfig)
     .then(handleResponse);
 }
 
@@ -74,7 +64,7 @@ async function update(id, schedule) {
   console.log(body);
 
   return await axios
-    .put(`/api/schedules/${id}`, body, requestConfig)
+    .put(`/api/weeklySchedules/${id}`, body, requestConfig)
     .then(handleResponse);
 }
 
@@ -85,7 +75,7 @@ async function _delete(ids) {
   };
   console.log(ids);
   const promises = await ids.map((id) => {
-    return axios.delete(`/api/schedules/${id}`, requestConfig);
+    return axios.delete(`/api/weeklySchedules/${id}`, requestConfig);
   });
   return Promise.all(promises).then(handleResponse);
 }

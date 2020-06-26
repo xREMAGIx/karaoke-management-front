@@ -15,7 +15,6 @@ import setAuthToken from "./store/setAuthToken";
 
 import Dashboard from "./views/Dashboard";
 import Login from "./views/Login";
-import Register from "./views/Register";
 import Users from "./views/Users";
 import UsersAdd from "./views/UsersAdd";
 import UsersEdit from "./views/UsersEdit";
@@ -58,7 +57,6 @@ const App = () => {
           <Router history={history}>
             <Switch>
               <Route exact path="/login" component={Login}></Route>
-              <Route exact path="/register" component={Register}></Route>
               <AdminRoute
                 exact
                 path="/"

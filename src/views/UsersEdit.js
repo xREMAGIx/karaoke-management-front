@@ -328,7 +328,7 @@ export default function UserEdit(props) {
                       />
                     </FormGroup>
 
-                    <Grid
+                    {/* <Grid
                       style={{ marginTop: "10px" }}
                       container
                       justify="center"
@@ -419,7 +419,7 @@ export default function UserEdit(props) {
                             </Grid>
                           </Grid>
                         ))}
-                    </Grid>
+                    </Grid> */}
 
                     <Grid
                       style={{ marginTop: "10px" }}

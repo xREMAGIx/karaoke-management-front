@@ -5,6 +5,7 @@ import { schedules } from "./schedules.reducer";
 import { rooms } from "./rooms.reducer";
 import { products } from "./products.reducer";
 import { receipts } from "./receipts.reducer";
+import { weeklySchedules } from "./weeklyschedule.reducer";
 
 const rootReducer = combineReducers({
   users,
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
   rooms,
   products,
   receipts,
+  weeklySchedules,
 });
 
 export default rootReducer;
